@@ -2,18 +2,14 @@
 
 #include "Regular.hh"
 
-#include <memory>
-
-class A {
-public:
-    A(int) {}
-
-    A(int, int) {}
-};
-
 int main() {
-    regular_string::regular::linear::Union u({});
+    using namespace regular_string;
 
-    std::cout << "Hello, World!" << std::endl;
+    std::string s = "Hello, world!";
+    auto m = rk(ru({rs('H'), rs('e')->label("fuck"), rs('l')}))->match(s.cbegin(), s.cend());
+    std::cout << m->success << '\n';
+    if (m->success) {
+        std::cout << s.substr(0, std::size_t(m->end - s.cbegin())) << '\n';
+    }
     return 0;
 }
