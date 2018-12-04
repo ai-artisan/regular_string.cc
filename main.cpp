@@ -6,19 +6,13 @@
 
 class A {
 public:
-    virtual void f() = 0;
-};
+    A(int) {}
 
-class B : public A {
-public:
-    virtual void f() {
-        std::cout << 1234 << '\n';
-    }
+    A(int, int) {}
 };
 
 int main() {
-    std::shared_ptr<A> a = std::make_shared<B>();
-    ((B*)(&*a))->f();
+    regular_string::regular::linear::Union u({});
 
     std::cout << "Hello, World!" << std::endl;
     return 0;
