@@ -3,7 +3,7 @@
 #include "Regular.hh"
 
 int main() {
-    using namespace regular_string;
+    using namespace rs;
 
     std::string s = "Hello, world!";
     auto r = RK(RS(), RC("world"));

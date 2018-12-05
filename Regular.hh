@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace regular_string {
+namespace rs {
     class Regular {
     public:
         class Match : public std::enable_shared_from_this<Match> {
