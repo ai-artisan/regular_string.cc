@@ -8,16 +8,8 @@
 #include <vector>
 
 namespace regular_string {
-    class Regular : public std::enable_shared_from_this<Regular> {
-        std::string _label;
+    class Regular {
     public:
-        std::shared_ptr<Regular> label(std::string label) {
-            _label = std::move(label);
-            return shared_from_this();
-        }
-
-        const std::string &label() const { return _label; }
-
         class Match : public std::enable_shared_from_this<Match> {
         public:
             const bool success;
@@ -66,25 +58,21 @@ namespace regular_string {
             }
         };
 
-        class Linear : public Regular {
+        class Linear : public Regular, public std::enable_shared_from_this<Linear> {
         protected:
-            std::vector<std::shared_ptr<Regular>> _vector;
+            std::list<std::shared_ptr<Regular>> _list;
             std::unordered_map<std::size_t, std::string> _map;
         public:
-            explicit Linear(std::vector<std::shared_ptr<Regular>> vector) {
-                for (auto i = 0; i < vector.size(); ({
-                    _map[i] = vector[i]->label();
-                    i++;
-                }));
-                _vector = std::move(vector);
+            std::shared_ptr<Linear> item(const std::shared_ptr<Regular> &item, std::string name = "") {
+                _list.emplace_back(item);
+                _map[_list.size() - 1] = std::move(name);
+                return shared_from_this();
             }
         };
 
         namespace linear {
             class Union : public Linear {
             public:
-                explicit Union(std::vector<std::shared_ptr<Regular>> vector) : Linear(std::move(vector)) {}
-
                 class Match : public Regular::Match {
                 public:
                     const std::size_t index;
@@ -105,13 +93,14 @@ namespace regular_string {
                 std::shared_ptr<Regular::Match>
                 match(const std::string::const_iterator &i, const std::string::const_iterator &end) final {
                     auto m = std::make_shared<Regular::Match>(false, i, i);
-                    std::size_t k;
-                    for (std::size_t j = 0; j < _vector.size(); ({
-                        m = _vector[j]->match(i, end);
-                        if (m->success) {
-                            k = j;
-                            j = _vector.size();
-                        } else j++;
+                    std::size_t k = 0;
+                    for (auto j = _list.cbegin(); j != _list.cend(); ({
+                        m = (*j)->match(i, end);
+                        if (m->success) j = _list.cend();
+                        else {
+                            k++;
+                            j++;
+                        }
                     }));
                     return std::make_shared<Match>(m->success, i, m->end, k, _map[k]);
                 }
@@ -119,8 +108,6 @@ namespace regular_string {
 
             class Concatenation : public Linear {
             public:
-                explicit Concatenation(std::vector<std::shared_ptr<Regular>> vector) : Linear(std::move(vector)) {}
-
                 class Match : public Regular::Match {
                 public:
                     const std::vector<std::shared_ptr<Regular::Match>> vector;
@@ -140,18 +127,20 @@ namespace regular_string {
 
                 std::shared_ptr<Regular::Match>
                 match(const std::string::const_iterator &i0, const std::string::const_iterator &end) final {
-                    std::vector<std::shared_ptr<Regular::Match>> vector(_vector.size());
+                    std::vector<std::shared_ptr<Regular::Match>> vector(_list.size());
                     std::unordered_map<std::string, std::shared_ptr<Regular::Match>> map;
                     auto i = i0;
                     std::shared_ptr<Regular::Match> m;
-                    for (std::size_t j = 0; j < _vector.size(); ({
-                        m = _vector[j]->match(i, end);
-                        vector[j] = m;
-                        map[_map[j]] = m;
+                    std::size_t k = 0;
+                    for (auto j = _list.cbegin(); j != _list.cend(); ({
+                        m = (*j)->match(i, end);
+                        vector[k] = m;
+                        map[_map[k]] = m;
                         if (m->success) {
                             i = m->end;
+                            k++;
                             j++;
-                        } else j = _vector.size();
+                        } else j = _list.cend();
                     }));
                     return std::make_shared<Match>(m->success, i0, m->end, std::move(vector), std::move(map));
                 }
@@ -159,59 +148,86 @@ namespace regular_string {
         }
 
         class KleeneStar : public Regular {
-            std::shared_ptr<Regular> _regular;
+            std::shared_ptr<Regular> _repeat;
+            std::shared_ptr<Regular> _termination;
         public:
-            explicit KleeneStar(const std::shared_ptr<Regular> &regular) {
-                _regular = regular;
+            explicit KleeneStar(
+                    const std::shared_ptr<Regular> &repeat,
+                    const std::shared_ptr<Regular> &termination
+            ) {
+                _repeat = repeat;
+                _termination = termination;
             }
 
             class Match : public Regular::Match {
             public:
-                const std::list<std::shared_ptr<Regular::Match>> list;
+                const std::list<std::shared_ptr<Regular::Match>> repeats;
+                const std::shared_ptr<Regular::Match> termination;
 
                 Match(
                         const bool &success,
                         const std::string::const_iterator &begin,
                         const std::string::const_iterator &end,
-                        std::list<std::shared_ptr<Regular::Match>> &&list
+                        std::list<std::shared_ptr<Regular::Match>> &&repeats,
+                        std::shared_ptr<Regular::Match> termination
                 ) :
                         Regular::Match(success, begin, end),
-                        list(std::move(list)) {}
+                        repeats(std::move(repeats)),
+                        termination(std::move(termination)) {}
             };
 
             std::shared_ptr<Regular::Match>
             match(const std::string::const_iterator &i0, const std::string::const_iterator &end) final {
-                std::list<std::shared_ptr<Regular::Match>> list;
+                std::list<std::shared_ptr<Regular::Match>> repeats;
+                std::shared_ptr<Regular::Match> m = std::make_shared<Regular::Match>(false, i0, i0), termination = m;
                 auto i = i0;
-                std::shared_ptr<Regular::Match> m;
                 while (({
-                    m = _regular->match(i, end);
-                    m->success ? ({
-                        list.emplace_back(m);
-                        i = m->end;
-                        true;
-                    }) : false;
+                    termination = m = _termination->match(i, end);
+                    m->success ? false : ({
+                        m = _repeat->match(i, end);
+                        m->success ? ({
+                            repeats.emplace_back(m);
+                            i = m->end;
+                            true;
+                        }) : false;
+                    });
                 }));
-                return std::make_shared<Match>(true, i0, m->end, std::move(list));
+                return std::make_shared<Match>(true, i0, m->end, std::move(repeats), termination);
             }
         };
     }
 
-    std::shared_ptr<Regular> re() {
+    using RM=typename Regular::Match;
+
+    std::shared_ptr<regular::Empty> RE() {
         return std::make_shared<regular::Empty>();
     }
 
-    using rem=typename regular::Empty::Match;
+    using REM=typename regular::Empty::Match;
 
-    std::shared_ptr<Regular> rs(const char &c) {
-        return std::make_shared<regular::Singleton>([&](const char &t) -> bool { return t == c; });
+    std::shared_ptr<regular::Singleton> RS(const bool &any = true) {
+        return std::make_shared<regular::Singleton>([&](const char &t) -> bool { return any; });
     }
 
-    std::shared_ptr<Regular> rs(const char &inf, const char &sup) {
+    std::shared_ptr<regular::Singleton> RS(const char &c, const bool &is = true) {
+        return std::make_shared<regular::Singleton>([&](const char &t) -> bool { return is xor t == c; });
+    }
+
+    std::shared_ptr<regular::Singleton> RS(const std::string &s, const bool &in = true) {
+        return std::make_shared<regular::Singleton>([&](const char &t) -> bool {
+            for (auto i = s.cbegin(); i != s.cend(); ({
+                if (t == *i) return in;
+                i++;
+            }));
+            return !in;
+        });
+    }
+
+    std::shared_ptr<regular::Singleton> RS(const char &inf, const char &sup) {
         return std::make_shared<regular::Singleton>([&](const char &t) -> bool { return t >= inf && t < sup; });
     }
 
-    std::shared_ptr<Regular> rs(const std::list<std::pair<char, char>> &list) {
+    std::shared_ptr<regular::Singleton> RS(const std::list<std::pair<char, char>> &list) {
         return std::make_shared<regular::Singleton>([&](const char &t) -> bool {
             for (auto i = list.cbegin(); i != list.cend(); ({
                 if (t >= i->first && t < i->second) return true;
@@ -221,33 +237,36 @@ namespace regular_string {
         });
     }
 
-    using rsm=typename regular::Singleton::Match;
+    using RSM=typename regular::Singleton::Match;
 
-    std::shared_ptr<Regular> ru(std::vector<std::shared_ptr<Regular>> vector) {
-        return std::make_shared<regular::linear::Union>(std::move(vector));
+    std::shared_ptr<regular::linear::Union> RU() {
+        return std::make_shared<regular::linear::Union>();
     }
 
-    using rum=typename regular::linear::Union::Match;
+    using RUM=typename regular::linear::Union::Match;
 
-    std::shared_ptr<Regular> rc(std::vector<std::shared_ptr<Regular>> vector) {
-        return std::make_shared<regular::linear::Concatenation>(std::move(vector));
+    std::shared_ptr<regular::linear::Concatenation> RC() {
+        return std::make_shared<regular::linear::Concatenation>();
     }
 
-    std::shared_ptr<Regular> rc(const std::string &raw) {
-        std::vector<std::shared_ptr<Regular>> vector(raw.size());
-        auto j = 0;
+    std::shared_ptr<regular::linear::Concatenation> RC(const std::string &raw) {
+        auto rc = RC();
+
         for (auto i = raw.cbegin(); i != raw.cend(); ({
-            vector[j++] = rs(*i);
+            rc->item(RS(*i));
             i++;
         }));
-        return std::make_shared<regular::linear::Concatenation>(std::move(vector));
+        return rc;
     }
 
-    using rcm=typename regular::linear::Concatenation::Match;
+    using RCM=typename regular::linear::Concatenation::Match;
 
-    std::shared_ptr<Regular> rk(const std::shared_ptr<Regular> &regular) {
-        return std::make_shared<regular::KleeneStar>(regular);
+    std::shared_ptr<regular::KleeneStar> RK(
+            const std::shared_ptr<Regular> &repeat,
+            const std::shared_ptr<Regular> &termination = RS(false)
+    ) {
+        return std::make_shared<regular::KleeneStar>(repeat, termination);
     }
 
-    using rkm=typename regular::KleeneStar::Match;
+    using RKM=typename regular::KleeneStar::Match;
 }

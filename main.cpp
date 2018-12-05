@@ -6,12 +6,14 @@ int main() {
     using namespace regular_string;
 
     std::string s = "Hello, world!";
-    auto m = rk(ru({rs('H')->label("shit"), rs('e')->label("fuck"), rs('l')}))->match(s.cbegin(), s.cend());
+    auto r = RK(RS(), RC("world"));
+    auto m = r->match(s.cbegin(), s.cend());
     std::cout << m->success << '\n';
-    if (m->success) {
-        auto um = m->derived<rkm>()->list.front()->derived<rum>();
-        std::cout << um->key << '\n';
-        std::cout << s.substr(0, std::size_t(um->end - s.cbegin())) << '\n';
-    }
+    std::cout << m->derived<RKM>()->termination->derived<RCM>()->vector.size() << '\n';
+//    if (m->success) {
+//        auto um = m->derived<RKM>()->repeats.front()->derived<RUM>();
+//        std::cout << um->key << '\n';
+//        std::cout << s.substr(0, std::size_t(um->end - s.cbegin())) << '\n';
+//    }
     return 0;
 }
