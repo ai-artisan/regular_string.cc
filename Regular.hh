@@ -263,6 +263,7 @@ namespace rs {
                 while (({
                     auto m = _suffixes.top().first->match(i, i1);
                     _suffixes.top().second(m);
+
                     m->success ? false : ({
                         m = _repeat->match(i, i1);
                         m->success ? ({
@@ -391,7 +392,9 @@ namespace rs {
 
     using RCM=typename regular::linear::Concatenation::Match;
 
-    std::shared_ptr<regular::KleeneStar> RK(const std::shared_ptr<Regular> &repeat) {
+    std::shared_ptr<regular::KleeneStar> RK(
+            const std::shared_ptr<Regular> &repeat
+    ) {
         return std::make_shared<regular::KleeneStar>(repeat);
     }
 
