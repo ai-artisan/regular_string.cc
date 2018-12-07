@@ -36,7 +36,7 @@ namespace rs {
                     end(end) {}
 
             template<typename Derived>
-            std::shared_ptr<Derived> derived() {
+            std::shared_ptr<Derived> as() {
                 return std::static_pointer_cast<Derived>(shared_from_this());
             }
 
@@ -55,9 +55,14 @@ namespace rs {
     protected:
         static std::stack<std::pair<
                 std::shared_ptr<Regular>,
-                std::function<void(std::shared_ptr<Match>)>
+                std::function<void(const std::shared_ptr<Match> &)>
         >> _suffixes;
     public:
+        template<typename Derived>
+        std::shared_ptr<Derived> as() {
+            return std::static_pointer_cast<Derived>(shared_from_this());
+        }
+
         std::shared_ptr<Match> match(
                 const std::string::const_iterator &i,
                 const std::string::const_iterator &i1
@@ -86,19 +91,26 @@ namespace rs {
             }
         };
 
+        template<typename Context= nullptr_t>
         class Singleton : public Regular {
             std::shared_ptr<Regular::Match>
             _match(
                     const std::string::const_iterator &i,
                     const std::string::const_iterator &i1
             ) final {
-                return (i != i1 && _function(*i)) ? std::make_shared<Regular::Match>(true, i, std::next(i))
-                                                  : std::make_shared<Regular::Match>(false, i, i);
+                return (i != i1 && _function(_context, *i))
+                       ? std::make_shared<Regular::Match>(true, i, i + 1)
+                       : std::make_shared<Regular::Match>(false, i, i);
             }
 
-            const std::function<bool(const char &)> _function;
+            const Context _context;
+            const std::function<bool(const Context &, const char &)> _function;
         public:
-            explicit Singleton(std::function<bool(const char &)> function) : _function(std::move(function)) {}
+            Singleton(
+                    Context context,
+                    std::function<bool(const Context &, const char &)> function
+            ) : _context(std::move(context)),
+                _function(std::move(function)) {}
         };
 
         class Linear : public Regular {
@@ -175,20 +187,51 @@ namespace rs {
                         const std::string::const_iterator &i0,
                         const std::string::const_iterator &i1
                 ) final {
+                    bool success;
+                    std::string::const_iterator end;
                     std::unordered_map<std::string, std::shared_ptr<Regular::Match>> map;
-                    auto i = i0;
-                    std::shared_ptr<Regular::Match> m;
-                    std::size_t k = 0;
-                    for (auto j = _list.cbegin(); j != _list.cend(); ({
-                        m = j->second->match(i, i1);
-                        map[j->first] = m;
-                        if (m->success) {
-                            i = m->end;
-                            k++;
-                            j++;
-                        } else j = _list.cend();
-                    }));
-                    return std::make_shared<Match>(m->success, i0, m->end, std::move(map));
+
+                    std::function<void(const std::string::const_iterator &)> lambda = [&](
+                            const std::string::const_iterator &i
+                    ) -> void {
+                        if (_list.empty()) {
+                            success = true;
+                            end = i;
+                        } else {
+                            auto front = _list.front();
+                            _list.pop_front();
+                            std::shared_ptr<Match> suffix_match = nullptr;
+                            _suffixes.emplace(std::make_pair(
+                                    shared_from_this(),
+                                    [&](const std::shared_ptr<Regular::Match> &m) -> void {
+                                        suffix_match = m->as<Match>();
+                                    }
+                            ));
+                            auto prefix_match = front.second->match(i, i1);
+                            map[front.first] = prefix_match;
+                            if ((success = prefix_match->success)) {
+                                if (suffix_match) {
+                                    success = suffix_match->success;
+                                    end = suffix_match->end;
+                                    auto &suffix_map = (std::unordered_map<
+                                            std::string,
+                                            std::shared_ptr<Regular::Match>
+                                    > &) suffix_match->map;
+                                    for (auto j = map.cbegin(); j != map.cend(); ({
+                                        suffix_map[j->first] = j->second;
+                                        j++;
+                                    }));
+                                    map = std::move(suffix_map);
+                                } else lambda(prefix_match->end);
+                            } else end = prefix_match->end;
+
+                            _suffixes.pop();
+                            _list.emplace_front(front);
+                        }
+                    };
+
+                    lambda(i0);
+                    return std::make_shared<Match>(success, i0, end, std::move(map));
                 }
             };
         }
@@ -217,13 +260,17 @@ namespace rs {
             ) final {
                 std::list<std::shared_ptr<Regular::Match>> list;
                 auto i = i0, end = i0;
-                while (/*termination->match(i, i1) ? false :*/ ({
-                    auto m = _repeat->match(i, i1);
-                    m->success ? ({
-                        list.emplace_back(m);
-                        end = i = m->end;
-                        true;
-                    }) : false;
+                while (({
+                    auto m = _suffixes.top().first->match(i, i1);
+                    _suffixes.top().second(m);
+                    m->success ? false : ({
+                        m = _repeat->match(i, i1);
+                        m->success ? ({
+                            list.emplace_back(m);
+                            end = i = m->end;
+                            true;
+                        }) : false;
+                    });
                 }));
                 return std::make_shared<Match>(true, i0, end, std::move(list));
             }
@@ -242,39 +289,86 @@ namespace rs {
 
     using REM=typename regular::Empty::Match;
 
-    std::shared_ptr<regular::Singleton> RS(const bool &any = true) {
-        return std::make_shared<regular::Singleton>([&](const char &t) -> bool { return any; });
+    std::shared_ptr<regular::Singleton<bool>> RS(const bool &any = true) {
+        return std::make_shared<regular::Singleton<bool>>(
+                any,
+                [&](const bool &any, const char &t) -> bool { return any; }
+        );
     }
 
-    std::shared_ptr<regular::Singleton> RS(const char &c, const bool &is = true) {
-        return std::make_shared<regular::Singleton>([&](const char &t) -> bool { return is xor t == c; });
+    namespace context {
+        struct IsCharacter {
+            const bool is;
+            const char character;
+        };
     }
 
-    std::shared_ptr<regular::Singleton> RS(const std::string &s, const bool &in = true) {
-        return std::make_shared<regular::Singleton>([&](const char &t) -> bool {
-            for (auto i = s.cbegin(); i != s.cend(); ({
-                if (t == *i) return in;
-                i++;
-            }));
-            return !in;
-        });
+    std::shared_ptr<regular::Singleton<context::IsCharacter>> RS(const char &c, const bool &is = true) {
+        using namespace context;
+        return std::make_shared<regular::Singleton<IsCharacter>>(
+                IsCharacter{is, c},
+                [&](const IsCharacter &c, const char &t) -> bool {
+                    return (!c.is) xor (t == c.character);
+                }
+        );
     }
 
-    std::shared_ptr<regular::Singleton> RS(const char &inf, const char &sup) {
-        return std::make_shared<regular::Singleton>([&](const char &t) -> bool { return t >= inf && t < sup; });
+    namespace context {
+        struct InString {
+            const bool in;
+            const std::string string;
+        };
     }
 
-    std::shared_ptr<regular::Singleton> RS(const std::list<std::pair<char, char>> &list) {
-        return std::make_shared<regular::Singleton>([&](const char &t) -> bool {
-            for (auto i = list.cbegin(); i != list.cend(); ({
-                if (t >= i->first && t < i->second) return true;
-                i++;
-            }));
-            return false;
-        });
+    std::shared_ptr<regular::Singleton<context::InString>> RS(const std::string &s, const bool &in = true) {
+        using namespace context;
+        return std::make_shared<regular::Singleton<context::InString>>(
+                InString{in, s},
+                [&](const InString &c, const char &t) -> bool {
+                    for (auto i = c.string.cbegin(); i != c.string.cend(); ({
+                        if (t == *i) return c.in;
+                        i++;
+                    }));
+                    return !c.in;
+                }
+        );
     }
 
-    using RSM=typename regular::Singleton::Match;
+    namespace context {
+        struct Interval {
+            const char inf;
+            const char sup;
+        };
+    }
+
+    std::shared_ptr<regular::Singleton<context::Interval>> RS(const char &inf, const char &sup) {
+        using namespace context;
+        return std::make_shared<regular::Singleton<Interval>>(
+                Interval{inf, sup},
+                [&](const Interval &c, const char &t) -> bool { return t >= c.inf && t < c.sup; }
+        );
+    }
+
+    namespace context {
+        using IntervalList=std::list<std::pair<char, char>>;
+    }
+
+    std::shared_ptr<regular::Singleton<context::IntervalList>> RS(const std::list<std::pair<char, char>> &list) {
+        using namespace context;
+        return std::make_shared<regular::Singleton<IntervalList >>(
+                list,
+                [&](const IntervalList &c, const char &t) -> bool {
+                    for (auto i = c.cbegin(); i != c.cend(); ({
+                        if (t >= i->first && t < i->second) return true;
+                        i++;
+                    }));
+                    return false;
+                }
+        );
+    }
+
+    template<typename Context>
+    using RSM=typename regular::Singleton<Context>::Match;
 
     std::shared_ptr<regular::linear::Union> RU() {
         return std::make_shared<regular::linear::Union>();
@@ -288,7 +382,6 @@ namespace rs {
 
     std::shared_ptr<regular::linear::Concatenation> RC(const std::string &raw) {
         auto rc = RC();
-
         for (auto i = raw.cbegin(); i != raw.cend(); ({
             rc->item(RS(*i));
             i++;
@@ -303,4 +396,10 @@ namespace rs {
     }
 
     using RKM=typename regular::KleeneStar::Match;
+
+    decltype(Regular::_suffixes) Regular::_suffixes = []() {
+        auto self = decltype(Regular::_suffixes)();
+        self.emplace(std::make_pair(RS(false), [](const std::shared_ptr<Match> &) -> void {}));
+        return self;
+    }();
 }
