@@ -120,6 +120,7 @@ namespace rs {
                     std::shared_ptr<Regular>
             >> _list;
         public:
+
             std::shared_ptr<Linear> item(const std::shared_ptr<Regular> &item, std::string name = "") {
                 _list.emplace_back(std::make_pair(name, item));
                 return std::dynamic_pointer_cast<Linear>(shared_from_this());
@@ -187,50 +188,62 @@ namespace rs {
                         const std::string::const_iterator &i0,
                         const std::string::const_iterator &i1
                 ) final {
-                    bool success;
-                    std::string::const_iterator end;
+                    bool success = true;
+                    std::string::const_iterator end = i0;
                     std::unordered_map<std::string, std::shared_ptr<Regular::Match>> map;
 
-                    std::function<void(const std::string::const_iterator &)> lambda = [&](
-                            const std::string::const_iterator &i
-                    ) -> void {
-                        if (_list.empty()) {
-                            success = true;
-                            end = i;
-                        } else {
-                            auto front = _list.front();
-                            _list.pop_front();
-                            std::shared_ptr<Match> suffix_match = nullptr;
-                            _suffixes.emplace(std::make_pair(
-                                    shared_from_this(),
-                                    [&](const std::shared_ptr<Regular::Match> &m) -> void {
-                                        suffix_match = m->as<Match>();
-                                    }
-                            ));
-                            auto prefix_match = front.second->match(i, i1);
-                            map[front.first] = prefix_match;
-                            if ((success = prefix_match->success)) {
-                                if (suffix_match) {
-                                    success = suffix_match->success;
-                                    end = suffix_match->end;
-                                    auto &suffix_map = (std::unordered_map<
-                                            std::string,
-                                            std::shared_ptr<Regular::Match>
-                                    > &) suffix_match->map;
-                                    for (auto j = map.cbegin(); j != map.cend(); ({
-                                        suffix_map[j->first] = j->second;
-                                        j++;
-                                    }));
-                                    map = std::move(suffix_map);
-                                } else lambda(prefix_match->end);
-                            } else end = prefix_match->end;
+                    auto i = i0;
+                    auto j = _list.cbegin();
+                    auto rest = std::make_shared<Concatenation>();
+                    for (auto k = std::next(j); k != _list.cend(); ({
+                        rest->item(k->second, k->first);
+                        k++;
+                    }));
 
-                            _suffixes.pop();
-                            _list.emplace_front(front);
-                        }
-                    };
+                    while (j == _list.cend() ? ({
+                        success = true;
+                        false;
+                    }) : (rest->_list.empty() ? ({
+                        auto m = j->second->match(i, i1);
+                        m->success ? ({
+                            map[j->first] = m;
+                            i = m->end;
+                            j++;
+                            true;
+                        }) : ({
+                            end = m->end;
+                            success = false;
+                        });
+                    }) : ({
+                        std::shared_ptr<Match> sm = nullptr;
+                        _suffixes.emplace(std::make_pair(
+                                rest,
+                                [&](const std::shared_ptr<Regular::Match> &m) -> void { sm = m->as<Match>(); }
+                        ));
+                        auto pm = j->second->match(i, i1);
+                        _suffixes.pop();
+                        pm->success ? ({
+                            map[j->first] = pm;
+                            sm && sm->success ? ({
+                                success = true;
+                                end = sm->end;
+                                for (auto k = sm->map.cbegin(); k != sm->map.cend(); ({
+                                    map[k->first] = k->second;
+                                    k++;
+                                }));
+                                false;
+                            }) : ({
+                                i = pm->end;
+                                j++;
+                                rest->_list.pop_front();
+                                true;
+                            });
+                        }) : ({
+                            end = pm->end;
+                            success = false;
+                        });
+                    })));
 
-                    lambda(i0);
                     return std::make_shared<Match>(success, i0, end, std::move(map));
                 }
             };
