@@ -86,9 +86,7 @@ namespace rs {
             _match(
                     const std::string::const_iterator &i,
                     const std::string::const_iterator &
-            ) final {
-                return std::make_shared<Regular::Match>(true, i, i);
-            }
+            ) final { return std::make_shared<Regular::Match>(true, i, i); }
         };
 
         template<typename Context= nullptr_t>
@@ -121,8 +119,8 @@ namespace rs {
             >> _list;
         public:
 
-            std::shared_ptr<Linear> item(const std::shared_ptr<Regular> &item, std::string name = "") {
-                _list.emplace_back(std::make_pair(name, item));
+            std::shared_ptr<Linear> item(const std::shared_ptr<Regular> &reg, std::string name = "") {
+                _list.emplace_back(std::make_pair(std::move(name), reg));
                 return std::dynamic_pointer_cast<Linear>(shared_from_this());
             }
         };
@@ -176,7 +174,7 @@ namespace rs {
                             const bool &success,
                             const std::string::const_iterator &begin,
                             const std::string::const_iterator &end,
-                            std::unordered_map<std::string, std::shared_ptr<Regular::Match>> &&map
+                            std::unordered_map<std::string, std::shared_ptr<Regular::Match>> map
                     ) :
                             Regular::Match(success, begin, end),
                             map(std::move(map)) {}
@@ -201,6 +199,7 @@ namespace rs {
                     }));
 
                     while (j == _list.cend() ? ({
+                        end = i;
                         success = true;
                         false;
                     }) : (rest->_list.empty() ? ({
@@ -405,11 +404,8 @@ namespace rs {
 
     using RCM=typename regular::linear::Concatenation::Match;
 
-    std::shared_ptr<regular::KleeneStar> RK(
-            const std::shared_ptr<Regular> &repeat
-    ) {
-        return std::make_shared<regular::KleeneStar>(repeat);
-    }
+    std::shared_ptr<regular::KleeneStar>
+    RK(const std::shared_ptr<Regular> &repeat) { return std::make_shared<regular::KleeneStar>(repeat); }
 
     using RKM=typename regular::KleeneStar::Match;
 

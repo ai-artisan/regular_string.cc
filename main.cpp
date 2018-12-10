@@ -5,17 +5,13 @@
 int main() {
     using namespace rs;
 
-//    std::shared_ptr<Regular> r;
-//    r = RC()->item(RS('('))->item(RK(
-//            RU()->item(r)->item(RS())
-//    ))->item(RS(')'));
+    auto ru = RU();
+    auto r = RC()->item(RS('('))->item(RK(ru))->item(RS(')'));
+    ru->item(r)->item(RS());
 
-//    auto r = RC()->item(RC("Hello"), "A")->item(RS())->item(RS())->item(RC("world"), "B");
-    auto r = RC()->item(RC("He"))->item(RS())->item(RS())->item(RS('o'));
-
-    std::string s = "Hello, world!";
+    std::string s = "()";
     auto m = r->match(s.cbegin(), s.cend());
     std::cout << m->success << '\n';
-//    std::cout << m->as<RCM>()->map.at("prefix")->as<RKM>()->list.size() << '\n';
+    std::cout << m->end - s.cbegin() << '\n';
     return 0;
 }
