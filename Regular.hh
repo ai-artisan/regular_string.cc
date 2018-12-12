@@ -14,10 +14,10 @@ namespace rs {
     using Json=json::Json<>;
 
     class Regular : public std::enable_shared_from_this<Regular> {
-        bool _merge = false;
+        bool _collapsed = false;
     public:
-        std::shared_ptr<Regular> merge(const bool &merge) {
-            _merge = merge;
+        std::shared_ptr<Regular> collapse(const bool &collapsed) {
+            _collapsed = collapsed;
             return shared_from_this();
         }
 
@@ -63,7 +63,7 @@ namespace rs {
                 const std::string::const_iterator &i1
         ) {
             auto m = this->_match(i, i1);
-            if (_merge) return std::make_shared<Match>(m->success, m->begin, m->end);
+            if (_collapsed) return std::make_shared<Match>(m->success, m->begin, m->end);
             else return m;
         }
 
@@ -344,7 +344,7 @@ namespace rs {
 //        return std::make_shared<regular::Singleton<>>(nullptr, callback);
 //    }
 
-    std::shared_ptr<regular::Singleton<bool>> RS(const bool &any = true) {
+    std::shared_ptr<regular::Singleton<bool>> RSA(const bool &any = true) {
         return std::make_shared<regular::Singleton<bool>>(
                 any,
                 [&](const bool &any, const char &t) -> bool { return any; }
@@ -358,7 +358,7 @@ namespace rs {
         };
     }
 
-    std::shared_ptr<regular::Singleton<context::IsCharacter>> RS(const char &c, const bool &is = true) {
+    std::shared_ptr<regular::Singleton<context::IsCharacter>> RSIC(const char &c, const bool &is = true) {
         using namespace context;
         return std::make_shared<regular::Singleton<IsCharacter>>(
                 IsCharacter{is, c},
@@ -375,7 +375,7 @@ namespace rs {
         };
     }
 
-    std::shared_ptr<regular::Singleton<context::InString>> RS(const std::string &s, const bool &in = true) {
+    std::shared_ptr<regular::Singleton<context::InString>> RSIS(const std::string &s, const bool &in = true) {
         using namespace context;
         return std::make_shared<regular::Singleton<context::InString>>(
                 InString{in, s},
@@ -396,11 +396,11 @@ namespace rs {
         };
     }
 
-    std::shared_ptr<regular::Singleton<context::Interval>> RS(const char &inf, const char &sup) {
+    std::shared_ptr<regular::Singleton<context::Interval>> RSR(const char &inf, const char &sup) {
         using namespace context;
         return std::make_shared<regular::Singleton<Interval>>(
                 Interval{inf, sup},
-                [&](const Interval &c, const char &t) -> bool { return t >= c.inf && t < c.sup; }
+                [&](const Interval &c, const char &t) -> bool { return t >= c.inf && t <= c.sup; }
         );
     }
 
@@ -408,13 +408,13 @@ namespace rs {
         using IntervalList=std::list<std::pair<char, char>>;
     }
 
-    std::shared_ptr<regular::Singleton<context::IntervalList>> RS(const std::list<std::pair<char, char>> &list) {
+    std::shared_ptr<regular::Singleton<context::IntervalList>> RSRL(const std::list<std::pair<char, char>> &list) {
         using namespace context;
         return std::make_shared<regular::Singleton<IntervalList >>(
                 list,
                 [&](const IntervalList &c, const char &t) -> bool {
                     for (auto i = c.cbegin(); i != c.cend(); ({
-                        if (t >= i->first && t < i->second) return true;
+                        if (t >= i->first && t <= i->second) return true;
                         i++;
                     }));
                     return false;
@@ -442,7 +442,7 @@ namespace rs {
     std::shared_ptr<regular::linear::Concatenation> RC(const std::string &raw) {
         auto rc = RC();
         for (auto i = raw.cbegin(); i != raw.cend(); ({
-            rc->item(RS(*i));
+            rc->item(RSIC(*i));
             i++;
         }));
         return rc;

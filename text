@@ -1,1 +1,16 @@
-(asdf(()asdf)asdf())
+import fibo
+do [
+	import fibo,
+	import fibo.[fib, fib2],
+	import fibo.*,
+	import fibo as fib,
+	import fibo.fib as fibonacci,
+
+	import sound.effects.echo,
+	import sound.effects.echo.echofilter,
+	import sound.effects.*
+
+	import .echo,
+	import ..formats,
+	import ..filters.equalizer
+]
