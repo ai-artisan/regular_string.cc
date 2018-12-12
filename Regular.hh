@@ -16,7 +16,8 @@ namespace rs {
     class Regular : public std::enable_shared_from_this<Regular> {
         bool _merge = false;
     public:
-        std::shared_ptr<Regular> merge() {
+        std::shared_ptr<Regular> merge(const bool &merge) {
+            _merge = merge;
             return shared_from_this();
         }
 
@@ -52,12 +53,6 @@ namespace rs {
             }
         };
 
-    protected:
-        static std::stack<std::pair<
-                std::shared_ptr<Regular>,
-                std::function<void(const std::shared_ptr<Match> &)>
-        >> _suffixes;
-    public:
         template<typename Derived>
         std::shared_ptr<Derived> as() {
             return std::static_pointer_cast<Derived>(shared_from_this());
@@ -143,6 +138,8 @@ namespace rs {
                             Regular::Match(success, begin, end),
                             key(std::move(key)),
                             value(std::move(value)) {}
+
+                    Json json() final { return value->json(); }
                 };
 
             private:
@@ -164,20 +161,67 @@ namespace rs {
                 }
             };
 
+            class Intersection : public Linear {
+                std::shared_ptr<Regular::Match>
+                _match(
+                        const std::string::const_iterator &i,
+                        const std::string::const_iterator &i1
+                ) final {
+                    bool success;
+                    auto end = i;
+
+                    for (auto j = _list.cbegin(); j != _list.cend(); ({
+                        auto m = j->second->match(i, i1);
+                        end = m->end;
+                        if (m->success) {
+                            success = true;
+                            for (auto k = _list.cbegin(); k != _list.cend(); ({
+                                if (k != j) {
+                                    auto m1 = k->second->match(i, m->end);
+                                    if (!(m1->success && m1->end == m->end)) {
+                                        success = false;
+                                        k = _list.cend();
+                                    } else k++;
+                                } else k++;
+                            }));
+                            if (success) j = _list.cend();
+                            else j++;
+                        } else {
+                            success = false;
+                            j = _list.cend();
+                        }
+                    }));
+
+                    return std::make_shared<Match>(success, i, end);
+                }
+            };
+
             class Concatenation : public Linear {
             public:
                 class Match : public Regular::Match {
                 public:
+                    const std::list<std::shared_ptr<Regular::Match>> list;
                     const std::unordered_map<std::string, std::shared_ptr<Regular::Match>> map;
 
                     Match(
                             const bool &success,
                             const std::string::const_iterator &begin,
                             const std::string::const_iterator &end,
+                            std::list<std::shared_ptr<Regular::Match>> list,
                             std::unordered_map<std::string, std::shared_ptr<Regular::Match>> map
                     ) :
                             Regular::Match(success, begin, end),
+                            list(std::move(list)),
                             map(std::move(map)) {}
+
+                    Json json() final {
+                        auto m = std::unordered_map<std::string, Json>();
+                        for (auto i = map.cbegin(); i != map.cend(); ({
+                            if (!i->first.empty()) m[i->first] = i->second->json();
+                            i++;
+                        }));
+                        return m;
+                    }
                 };
 
             private:
@@ -187,66 +231,50 @@ namespace rs {
                         const std::string::const_iterator &i1
                 ) final {
                     bool success = true;
-                    std::string::const_iterator end = i0;
+                    auto end = i0;
+                    std::list<std::shared_ptr<Regular::Match>> list;
                     std::unordered_map<std::string, std::shared_ptr<Regular::Match>> map;
 
                     auto i = i0;
-                    auto j = _list.cbegin();
-                    auto rest = std::make_shared<Concatenation>();
-                    for (auto k = std::next(j); k != _list.cend(); ({
-                        rest->item(k->second, k->first);
-                        k++;
-                    }));
-
-                    while (j == _list.cend() ? ({
-                        end = i;
-                        success = true;
-                        false;
-                    }) : (rest->_list.empty() ? ({
+                    for (auto j = _list.cbegin(); j != _list.cend(); ({
                         auto m = j->second->match(i, i1);
                         m->success ? ({
-                            map[j->first] = m;
+                            list.emplace_back(m);
+                            if (!j->first.empty()) map[j->first] = m;
                             i = m->end;
                             j++;
-                            true;
                         }) : ({
+                            success = false;
                             end = m->end;
-                            success = false;
+                            j = _list.cend();
                         });
-                    }) : ({
-                        std::shared_ptr<Match> sm = nullptr;
-                        _suffixes.emplace(std::make_pair(
-                                rest,
-                                [&](const std::shared_ptr<Regular::Match> &m) -> void { sm = m->as<Match>(); }
-                        ));
-                        auto pm = j->second->match(i, i1);
-                        _suffixes.pop();
-                        pm->success ? ({
-                            map[j->first] = pm;
-                            sm && sm->success ? ({
-                                success = true;
-                                end = sm->end;
-                                for (auto k = sm->map.cbegin(); k != sm->map.cend(); ({
-                                    map[k->first] = k->second;
-                                    k++;
-                                }));
-                                false;
-                            }) : ({
-                                i = pm->end;
-                                j++;
-                                rest->_list.pop_front();
-                                true;
-                            });
-                        }) : ({
-                            end = pm->end;
-                            success = false;
-                        });
-                    })));
+                    }));
+                    if (success) end = i;
 
-                    return std::make_shared<Match>(success, i0, end, std::move(map));
+                    return std::make_shared<Match>(success, i0, end, std::move(list), std::move(map));
                 }
             };
         }
+
+        class Difference : public Regular {
+            std::shared_ptr<Regular::Match>
+            _match(
+                    const std::string::const_iterator &i0,
+                    const std::string::const_iterator &i1
+            ) final {
+                auto m = _global->match(i0, i1),
+                        m1 = _local->match(i0, m->end);
+                return std::make_shared<Match>(!(m1->success && m1->end == m->end), i0, m->end);
+            }
+
+            const std::shared_ptr<Regular> _global, _local;
+        public:
+            explicit Difference(
+                    std::shared_ptr<Regular> global,
+                    std::shared_ptr<Regular> local
+            ) : _global(std::move(global)),
+                _local(std::move(local)) {}
+        };
 
         class KleeneStar : public Regular {
         public:
@@ -262,6 +290,15 @@ namespace rs {
                 ) :
                         Regular::Match(success, begin, end),
                         list(std::move(list)) {}
+
+                Json json() final {
+                    auto l = std::list<Json>();
+                    for (auto i = list.cbegin(); i != list.cend(); ({
+                        l.emplace_back((*i)->json());
+                        i++;
+                    }));
+                    return l;
+                }
             };
 
         private:
@@ -273,24 +310,25 @@ namespace rs {
                 std::list<std::shared_ptr<Regular::Match>> list;
                 auto i = i0, end = i0;
                 while (({
-                    auto m = _suffixes.top().first->match(i, i1);
-                    _suffixes.top().second(m);
-
-                    m->success ? false : ({
-                        m = _repeat->match(i, i1);
-                        m->success ? ({
-                            list.emplace_back(m);
-                            end = i = m->end;
-                            true;
-                        }) : false;
+                    auto m = _repeat->match(i, i1);
+                    m->success && (!_positive_width || m->end > i) ? ({
+                        list.emplace_back(m);
+                        i = m->end;
+                        true;
+                    }) : ({
+                        end = i;
+                        false;
                     });
                 }));
                 return std::make_shared<Match>(true, i0, end, std::move(list));
             }
 
             const std::shared_ptr<Regular> _repeat;
+            const bool _positive_width;
         public:
-            explicit KleeneStar(std::shared_ptr<Regular> repeat) : _repeat(std::move(repeat)) {}
+            explicit KleeneStar(std::shared_ptr<Regular> repeat, const bool &positive_width) :
+                    _repeat(std::move(repeat)),
+                    _positive_width(positive_width) {}
         };
     }
 
@@ -301,6 +339,10 @@ namespace rs {
     }
 
     using REM=typename regular::Empty::Match;
+
+//    std::shared_ptr<regular::Singleton<>> RS(const std::function<bool(const nullptr_t &, const char &)> &callback) {
+//        return std::make_shared<regular::Singleton<>>(nullptr, callback);
+//    }
 
     std::shared_ptr<regular::Singleton<bool>> RS(const bool &any = true) {
         return std::make_shared<regular::Singleton<bool>>(
@@ -389,6 +431,10 @@ namespace rs {
 
     using RUM=typename regular::linear::Union::Match;
 
+    std::shared_ptr<regular::linear::Intersection> RI() {
+        return std::make_shared<regular::linear::Intersection>();
+    }
+
     std::shared_ptr<regular::linear::Concatenation> RC() {
         return std::make_shared<regular::linear::Concatenation>();
     }
@@ -404,14 +450,16 @@ namespace rs {
 
     using RCM=typename regular::linear::Concatenation::Match;
 
+    std::shared_ptr<regular::Difference>
+    RK(const std::shared_ptr<Regular> &global, const std::shared_ptr<Regular> &local) {
+        return std::make_shared<regular::Difference>(global, local);
+    }
+
     std::shared_ptr<regular::KleeneStar>
-    RK(const std::shared_ptr<Regular> &repeat) { return std::make_shared<regular::KleeneStar>(repeat); }
+    RK(
+            const std::shared_ptr<Regular> &repeat,
+            const bool &positive_width = true
+    ) { return std::make_shared<regular::KleeneStar>(repeat, positive_width); }
 
     using RKM=typename regular::KleeneStar::Match;
-
-    decltype(Regular::_suffixes) Regular::_suffixes = []() {
-        auto self = decltype(Regular::_suffixes)();
-        self.emplace(std::make_pair(RS(false), [](const std::shared_ptr<Match> &) -> void {}));
-        return self;
-    }();
 }
