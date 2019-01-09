@@ -338,8 +338,6 @@ namespace rs {
         return std::make_shared<regular::Empty>();
     }
 
-    using REM=typename regular::Empty::Match;
-
 //    std::shared_ptr<regular::Singleton<>> RS(const std::function<bool(const nullptr_t &, const char &)> &callback) {
 //        return std::make_shared<regular::Singleton<>>(nullptr, callback);
 //    }
