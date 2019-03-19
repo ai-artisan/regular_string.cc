@@ -43,6 +43,19 @@ int main(int argc, char *argv[]) {
             )
             ->item(r_digit)
             ->item(RK(r_digit));
+    auto r_alphabet = RU()
+            ->item(RSR(L'a', L'z'))
+            ->item(RSR(L'A', L'Z'));
+    auto r_word = RC()
+            ->item(r_alphabet)
+            ->item(RK(r_alphabet));
+    auto r_http = RC()
+            ->item(RC(L"http://"))
+            ->item(RU()
+                           ->item(r_word)
+                           ->item(r_digit)
+                           ->item(RSI(L"/."))
+            );
     auto r = RK(RU()
                         ->item(RC()
                                        ->item(RC(L"{{"))
@@ -55,14 +68,18 @@ int main(int argc, char *argv[]) {
                                                                                              ->item(RK(RSI(L'}', false)))
                                                                         ), L"HTTP")
                                                                         ->item(CLPSD(r_whitespaces))
+                                                                        ->item(CLPSD(r_http), L"HTTP")
                                                                         ->item(CLPSD(r_number), L"NUMBER")
+                                                                        ->item(CLPSD(r_word), L"WORD")
                                                                         ->item(RSI(L'}', false), L"ATOM")
                                                       ), L"CONTENT"), L"MAIN"
                                        )
                                        ->item(RC(L"}}")), L"LABEL"
                         )
                         ->item(CLPSD(r_whitespaces))
+                        ->item(CLPSD(r_http), L"HTTP")
                         ->item(CLPSD(r_number), L"NUMBER")
+                        ->item(CLPSD(r_word), L"WORD")
                         ->item(RSA(), L"ATOM")
     );
     auto m = r->match(source.cbegin(), source.cend());
@@ -71,7 +88,7 @@ int main(int argc, char *argv[]) {
      * 转换
      */
     std::wstringstream target;
-    const auto NUMBER = L"$N", HTTP = L"$H";
+    const auto NUMBER = L"N", WORD = L"W", HTTP = L"H";
     auto list = m->as<RKM>()->list;
     for (auto i = list.cbegin(); i != list.cend(); ({
         auto m = (*i)->as<RUM>();
@@ -87,6 +104,7 @@ int main(int argc, char *argv[]) {
                 auto key = m->key;
                 if (key == L"HTTP") cache.emplace_back(HTTP);
                 else if (key == L"NUMBER") cache.emplace_back(NUMBER);
+                else if (key == L"WORD") cache.emplace_back(WORD);
                 else if (key == L"ATOM") cache.emplace_back(m->value->json().asString());
                 i++;
             }));
@@ -97,7 +115,9 @@ int main(int argc, char *argv[]) {
                     i++;
                 }));
             }
-        } else if (key == L"NUMBER") target << NUMBER << L"\tO\n";
+        } else if (key == L"HTTP") target << HTTP << L"\tO\n";
+        else if (key == L"NUMBER") target << NUMBER << L"\tO\n";
+        else if (key == L"WORD") target << WORD << L"\tO\n";
         else if (key == L"ATOM") {
             auto s = value->json().asString();
             target << s << L"\tO\n";
