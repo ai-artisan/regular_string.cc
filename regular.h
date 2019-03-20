@@ -29,8 +29,7 @@ namespace regular {
     };
 
     template<typename Character=char>
-    class Pattern : std::enable_shared_from_this<Pattern<Character>> {
-    public:
+    struct Pattern : std::enable_shared_from_this<Pattern<Character>> {
         struct Record : std::enable_shared_from_this<Record> {
             const bool success;
             const typename Traits<Character>::String::const_iterator begin, end;
@@ -48,16 +47,14 @@ namespace regular {
 
     namespace pattern {
         template<typename Character>
-        class Null : Pattern<Character> {
-        public:
+        struct Null : Pattern<Character> {
             using Record=typename Null::Record;
 
             std::shared_ptr<Record> match(const typename Traits<Character>::String::const_iterator &, const typename Traits<Character>::String::const_iterator &) final;
         };
 
         template<typename Character, typename Context=nullptr_t>
-        class Singleton : Pattern<Character> {
-        public:
+        struct Singleton : Pattern<Character> {
             using Record=typename Singleton::Record;
 
             std::shared_ptr<Record> match(const typename Traits<Character>::String::const_iterator &, const typename Traits<Character>::String::const_iterator &) final;
