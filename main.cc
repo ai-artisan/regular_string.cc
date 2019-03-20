@@ -5,12 +5,15 @@
 #include <string>
 
 #include "regular.h"
+#include "regular.cc"
 
 
 int main(int argc, char *argv[]) {
     using namespace regular;
 
-    Pattern<char> p;
+    pattern::Singleton<char> p([](const char &c, const nullptr_t &) {
+        return true;
+    });
 
 //    /**
 //     * 手动预处理

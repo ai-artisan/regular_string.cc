@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -27,29 +28,44 @@ namespace regular {
         using Json=json::Json<double, wchar_t>;
     };
 
-    template<typename Char>
-    class Pattern : std::enable_shared_from_this<Pattern<Char>> {
+    template<typename Character=char>
+    class Pattern : std::enable_shared_from_this<Pattern<Character>> {
     public:
-        using String=typename Traits<Char>::String;
-        using Json=typename Traits<Char>::Json;
-
         struct Record : std::enable_shared_from_this<Record> {
-            const bool success = false;
-            const typename String::const_iterator begin, end;
+            const bool success;
+            const typename Traits<Character>::String::const_iterator begin, end;
+
+            Record(const bool &, const typename Traits<Character>::String::const_iterator &, const typename Traits<Character>::String::const_iterator &);
+
+            virtual typename Traits<Character>::Json json();
 
             template<typename Derived>
-            inline std::shared_ptr<Derived> as() {
-                return std::static_pointer_cast<Derived>(this->shared_from_this());
-            }
-
-            inline virtual Json json() {
-                return String(begin, end);
-            }
+            std::shared_ptr<Derived> as();
         };
 
-        virtual std::shared_ptr<Record> match(
-                const typename String::const_iterator &,
-                const typename String::const_iterator &
-        ) = 0;
+        virtual std::shared_ptr<Record> match(const typename Traits<Character>::String::const_iterator &, const typename Traits<Character>::String::const_iterator &) = 0;
     };
+
+    namespace pattern {
+        template<typename Character>
+        class Null : Pattern<Character> {
+        public:
+            using Record=typename Null::Record;
+
+            std::shared_ptr<Record> match(const typename Traits<Character>::String::const_iterator &, const typename Traits<Character>::String::const_iterator &) final;
+        };
+
+        template<typename Character, typename Context=nullptr_t>
+        class Singleton : Pattern<Character> {
+        public:
+            using Record=typename Singleton::Record;
+
+            std::shared_ptr<Record> match(const typename Traits<Character>::String::const_iterator &, const typename Traits<Character>::String::const_iterator &) final;
+
+            const std::function<bool(const Character &, const Context &)> describe;
+            const Context context;
+
+            explicit Singleton(const decltype(describe) &, const Context & = nullptr);
+        };
+    }
 }
