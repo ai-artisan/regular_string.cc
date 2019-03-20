@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "Regular.hh"
+#include "reglular.hh"
 
 #include <locale>
 #include <codecvt>
