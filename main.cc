@@ -16,12 +16,9 @@ int main(int argc, char *argv[]) {
     std::shared_ptr<Pattern<char>> empty = std::make_shared<pattern::Empty<char>>();
     empty->match(s.cbegin(), s.cend());
 
-    std::shared_ptr<Pattern<char>> singleton = std::make_shared<pattern::Singleton<char, nullptr_t>>(std::make_pair(
-            [](const char &c, const nullptr_t &) {
-                return true;
-            },
-            nullptr
-    ));
+    std::shared_ptr<Pattern<char>> singleton = std::make_shared<pattern::Singleton<char, nullptr_t>>([](const char &c, const nullptr_t &) {
+        return true;
+    }, nullptr);
     singleton->match(s.cbegin(), s.cend());
 
     std::shared_ptr<Pattern<char>> un = std::make_shared<pattern::binary::Union<char>>(std::array{empty, singleton});
@@ -30,8 +27,11 @@ int main(int argc, char *argv[]) {
     std::shared_ptr<Pattern<char>> concat = std::make_shared<pattern::binary::Concatenation<char>>(std::array{singleton, un});
     un->match(s.cbegin(), s.cend());
 
-    std::shared_ptr<Pattern<char>> kleene = std::make_shared<pattern::KleeneClosure<char>>(std::move(concat));
+    std::shared_ptr<Pattern<char>> kleene = std::make_shared<pattern::KleeneClosure<char>>(concat);
     kleene->match(s.cbegin(), s.cend());
+
+    std::shared_ptr<Pattern<char>> intersection = std::make_shared<pattern::binary::Intersection<char>>(std::array{concat, kleene});
+    intersection->match(s.cbegin(), s.cend());
 
 //    /**
 //     * 手动预处理

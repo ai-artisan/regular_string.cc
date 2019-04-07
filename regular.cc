@@ -1,26 +1,10 @@
 #include "regular.h"
 
 namespace regular {
-    namespace record {
-        template<typename Character>
-        typename Traits<Character>::String::const_iterator Naive<Character>::end() const {
-            return model[1];
-        }
-
-        template<typename Character>
-        typename Traits<Character>::String::const_iterator Union<Character>::end() const {
-            return model.second->end();
-        }
-
-        template<typename Character>
-        typename Traits<Character>::String::const_iterator Concatenation<Character>::end() const {
-            return model[1]->end();
-        }
-
-        template<typename Character>
-        typename Traits<Character>::String::const_iterator KleeneClosure<Character>::end() const {
-            return model.back()->end();
-        }
+    template<typename Character>
+    template<typename Derived>
+    inline std::shared_ptr<Derived> Record<Character>::as() const {
+        return std::static_pointer_cast<Derived>(this->shared_from_this());
     }
 
     namespace pattern {
@@ -31,7 +15,7 @@ namespace regular {
                 const typename Traits<Character>::String::const_iterator &begin,
                 const typename Traits<Character>::String::const_iterator &end
         ) const {
-            return std::pair{true, std::make_shared<record::Naive<Character>>(std::array{begin, begin})};
+            return std::pair{true, std::make_shared<Record<Character>>(begin)};
         }
 
         template<typename Character, typename Context>
@@ -41,10 +25,9 @@ namespace regular {
                 const typename Traits<Character>::String::const_iterator &begin,
                 const typename Traits<Character>::String::const_iterator &end
         ) const {
-            const auto &[describe, context]=model;
             return (begin != end && describe(*begin, context))
-                   ? std::pair{true, std::make_shared<record::Naive<Character>>(std::array{begin, std::next(begin)})}
-                   : std::pair{false, std::make_shared<record::Naive<Character>>(std::array{begin, begin})};
+                   ? std::pair{true, std::make_shared<Record<Character>>(std::next(begin))}
+                   : std::pair{false, std::make_shared<Record<Character>>(begin)};
         }
 
         namespace binary {
@@ -55,12 +38,11 @@ namespace regular {
                     const typename Traits<Character>::String::const_iterator &begin,
                     const typename Traits<Character>::String::const_iterator &end
             ) const {
-                auto pair = this->model[0]->match(begin, end);
-                if (pair.first) return std::pair{true, std::make_shared<record::Union<Character>>(std::pair{0, pair.second})};
+                auto pair = this->binary[0]->match(begin, end);
+                if (pair.first) return std::pair{true, std::make_shared<record::SetBinary<Character>>(pair.second->end, 0, pair.second)};
                 else {
-                    pair = this->model[1]->match(begin, end);
-                    if (pair.first) return std::pair{true, std::make_shared<record::Union<Character>>(std::pair{1, pair.second})};
-                    else return std::pair{false, nullptr};
+                    pair = this->binary[1]->match(begin, end);
+                    return std::pair{pair.first, std::make_shared<record::SetBinary<Character>>(pair.second->end, 1, pair.second)};
                 }
             }
 
@@ -71,18 +53,48 @@ namespace regular {
                     const typename Traits<Character>::String::const_iterator &begin,
                     const typename Traits<Character>::String::const_iterator &end
             ) const {
-                bool success = false;
-                std::array<std::shared_ptr<Record<Character>>, 2> array;
-                auto pair = this->model[0]->match(begin, end);
+                std::array<std::shared_ptr<Record<Character>>, 2> array = {nullptr, nullptr};
+                auto pair = this->binary[0]->match(begin, end);
+                array[0] = pair.second;
                 if (pair.first) {
-                    array[0] = pair.second;
-                    pair = this->model[1]->match(begin, end);
-                    if (pair.first) {
-                        array[1] = pair.second;
-                        success = true;
-                    }
+                    pair = this->binary[1]->match(pair.second->end, end);
+                    array[1] = pair.second;
                 }
-                return std::pair{success, std::make_shared<record::Concatenation<Character>>(std::move(array))};
+                return std::pair{pair.first, std::make_shared<record::ConcatenationBinary<Character>>(array[1]->end, std::move(array))};
+            }
+
+
+            template<typename Character>
+            std::pair<bool, std::shared_ptr<Record < Character>>>
+
+            Intersection<Character>::match(
+                    const typename Traits<Character>::String::const_iterator &begin,
+                    const typename Traits<Character>::String::const_iterator &end
+            ) const {
+                bool index = false;
+                auto pair = this->binary[0]->match(begin, end);
+                if (pair.first) {
+                    index = true;
+                    pair = this->binary[1]->match(begin, pair.second->end);
+                }
+                return std::pair{pair.first, std::make_shared<record::SetBinary<Character>>(pair.second->end, index, pair.second)};
+            }
+
+            template<typename Character>
+            std::pair<bool, std::shared_ptr<Record < Character>>>
+
+            Complement<Character>::match(
+                    const typename Traits<Character>::String::const_iterator &begin,
+                    const typename Traits<Character>::String::const_iterator &end
+            ) const {
+                bool index = false;
+                auto pair = this->binary[0]->match(begin, end);
+                if (pair.first) {
+                    index = true;
+                    auto pair1 = this->binary[1]->match(begin, pair.second->end);
+                    if (pair1.first) pair = {false, pair1.second};
+                }
+                return std::pair{pair.first, std::make_shared<record::SetBinary<Character>>(pair.second->end, index, pair.second)};
             }
         }
 
@@ -96,71 +108,60 @@ namespace regular {
             std::list<std::shared_ptr<Record<Character>>> list;
             auto i = begin, j = end;
             while (({
-                auto[success, record] = model->match(i, end);
-                success && (record->end() > i) ? ({
+                auto[success, record] = item->match(i, end);
+                success && (record->end > i) ? ({
                     list.emplace_back(record);
-                    i = record->end();
+                    i = record->end;
                     true;
                 }) : ({
                     j = i;
                     false;
                 });
             }));
-            return std::pair{true, std::make_shared<record::KleeneClosure<Character>>(std::move(list))};
+            return std::pair{true, std::make_shared<record::KleeneClosure<Character>>(j, std::move(list))};
         }
     }
-}
 
+    namespace shortcut {
+        inline std::shared_ptr<pattern::Empty<char>> pe() {
+            return std::make_shared<pattern::Empty<char>>();
+        }
 
-//
-//template<typename CharacterType>
-//template<typename ContextType>
-//std::shared_ptr<typename Regular<CharacterType>::Pattern::Record> Regular<CharacterType>::Pattern::Singleton<ContextType>::match(const typename String::const_iterator &begin, const typename String::const_iterator &end) {
-//    return (begin != end && describe(*begin, context))
-//           ? std::make_shared<Record>(true, begin, std::next(begin))
-//           : std::make_shared<Record>(false, begin, begin);
-//}
-
-
-
-//namespace regular {
-
-//
-//    namespace pattern {
-//
-//        template<typename CharacterType>
-//        Linear<CharacterType>::~Linear() = default;
-//
-//        template<typename CharacterType>
-//        Linear<CharacterType>::Linear(decltype(sequence) &&sequence):
-//                sequence(std::move(sequence)) {}
-//
-//        namespace linear {
-//            template<typename CharacterType>
-//            Union<CharacterType>::Record::Record(decltype(key) &&key, decltype(value) &&value):
-//                    key(std::move(key)),
-//                    value(std::move(value)) {}
-//
-//            template<typename CharacterType>
-//            inline typename Union<CharacterType>::Json Union<CharacterType>::Record::json() {
-//                return value->json();
-//            }
-//
-//            template<typename CharacterType>
-//            std::shared_ptr<typename Union<CharacterType>::Record> Union<CharacterType>::match(const typename Union::String::const_iterator &begin, const typename Union::String::const_iterator &end) {
-//                auto m = std::make_shared<typename Pattern<CharacterType>::Match>(false, begin, begin);
-//                std::wstring key;
-//                for (auto j = this->sequence.cbegin(); j != this->sequence.cend(); ({
-//                    m = j->second->match(begin, end);
-//                    if (m->success) {
-//                        key = j->first;
-//                        j = this->sequence.cend();
-//                    } else j++;
-//                }));
-//                return std::make_shared<Record>(m->success, begin, m->end, key, m);
-//            }
+//        template<typename Context>
+//        inline std::shared_ptr<pattern::Singleton<char, Context>> ps(const std::function<bool(const char &, const Context &)> &callback, Context &&context) {
+//            return std::make_shared<pattern::Singleton<char, Context>>(callback, std::forward<Context>(context));
 //        }
-//    }
-//}
+//
+//        inline std::shared_ptr<pattern::Singleton<char, nullptr_t>> psa() {
+//            return std::make_shared<pattern::Singleton<char, nullptr_t>>([](const char &, const nullptr_t &) {
+//                return true;
+//            }, nullptr);
+//        }
+//
+//        std::shared_ptr<pattern::Singleton<char, std::pair<char, bool>>> psi(const char &c, const bool &is) {
+//            return std::make_shared<pattern::Singleton<char, std::pair<char, bool>>>(
+//                    std::pair{c, is},
+//                    [&](const char &c, const std::pair<char, bool> &si) -> bool {
+//                        return (!si.second) xor (c == si.first);
+//                    }
+//            );
+//        }
+//
+//        std::shared_ptr<pattern::Singleton<char, std::pair<Traits<char>::String, bool>>> psi(const Traits<char>::String &s, const bool &in) {
+//            return std::make_shared<pattern::Singleton<char, std::pair<Traits<char>::String, bool>>>(
+//                    std::pair{s, in},
+//                    [&](const char &c, const std::pair<Traits<char>::String, bool> &si) -> bool {
+//                        for (auto i = si.first.cbegin(); i != si.first.cend(); ({
+//                            if (c == *i) return si.second;
+//                            i++;
+//                        }));
+//                        return !si.second;
+//                    }
+//            );
+//        }
+
+
+    }
+}
 
 
