@@ -1,83 +1,197 @@
 #pragma once
 
+#include <array>
 #include <functional>
+#include <list>
 #include <memory>
 #include <string>
+#include <tuple>
 
-#include "json/json.hh"
+#include "json.cc/json.hh"
+
+#define CONSTRUCT_NAIVE(CLASS) explicit CLASS(decltype(model) &&model) : model(std::move(model)) {}
+#define CONSTRUCT_TRANSFER(CLASS, BASE) explicit CLASS(decltype(BASE::model) &&model) : BASE(std::move(model)) {}
 
 namespace regular {
-    template<typename>
+    template<typename...>
     struct Traits {
-        virtual ~Traits() = 0;
+        ~Traits() = delete;
     };
 
     template<>
     struct Traits<char> {
-        virtual ~Traits() = 0;
+        ~Traits() = delete;
 
-        using Character=char;
         using String=std::string;
-        using Json=json::Json<double, char>;
     };
 
     template<>
     struct Traits<wchar_t> {
-        virtual ~Traits() = 0;
+        ~Traits() = delete;
 
-        using Character=wchar_t;
         using String=std::wstring;
-        using Json=json::Json<double, wchar_t>;
     };
 
-    template<typename CharacterType>
-    struct Pattern : Traits<CharacterType>, std::enable_shared_from_this<Pattern<CharacterType>> {
-        struct Record : std::enable_shared_from_this<Record> {
-            const bool success;
-            const typename Pattern::String::const_iterator begin, end;
+    template<typename Character>
+    struct Record {
+        virtual typename Traits<Character>::String::const_iterator end() const = 0;
+    };
 
-            Record(const bool &, const typename Pattern::String::const_iterator &, const typename Pattern::String::const_iterator &);
+    namespace record {
+        template<typename Character>
+        struct Naive : Record<Character> {
+            const std::array<typename Traits<Character>::String::const_iterator, 2> model;
 
-            virtual typename Pattern::Json json();
+            CONSTRUCT_NAIVE(Naive)
 
-            template<typename Derived>
-            std::shared_ptr<Derived> as();
+            typename Traits<Character>::String::const_iterator end() const final;
         };
 
-        virtual std::shared_ptr<Record> match(const typename Pattern::String::const_iterator &, const typename Pattern::String::const_iterator &) = 0;
+        template<typename Character>
+        struct Union : Record<Character> {
+            const std::pair<
+                    bool,
+                    std::shared_ptr<Record<Character>>
+            > model;
+
+            CONSTRUCT_NAIVE(Union)
+
+            typename Traits<Character>::String::const_iterator end() const final;
+        };
+
+        template<typename Character>
+        struct Concatenation : Record<Character> {
+            const std::array<std::shared_ptr<Record<Character>>, 2> model;
+
+            CONSTRUCT_NAIVE(Concatenation)
+
+            typename Traits<Character>::String::const_iterator end() const final;
+        };
+
+        template<typename Character>
+        struct KleeneClosure : Record<Character> {
+            const std::list<std::shared_ptr<Record<Character>>> model;
+
+            CONSTRUCT_NAIVE(KleeneClosure)
+
+            typename Traits<Character>::String::const_iterator end() const final;
+        };
+    }
+
+    template<typename Character>
+    struct Pattern {
+        virtual std::pair<bool, std::shared_ptr<Record<Character>>> match(
+                const typename Traits<Character>::String::const_iterator &,
+                const typename Traits<Character>::String::const_iterator &
+        ) const = 0;
     };
 
     namespace pattern {
-        template<typename CharacterType>
-        struct Null : Pattern<CharacterType> {
-            std::shared_ptr<typename Null::Record> match(const typename Null::String::const_iterator &, const typename Null::String::const_iterator &) final;
+        template<typename Character>
+        struct Empty : Pattern<Character> {
+            std::pair<bool, std::shared_ptr<Record<Character>>> match(
+                    const typename Traits<Character>::String::const_iterator &,
+                    const typename Traits<Character>::String::const_iterator &
+            ) const final;
         };
 
-        template<typename CharacterType, typename Context=nullptr_t>
-        struct Singleton : Pattern<CharacterType> {
-            std::shared_ptr<typename Singleton::Record> match(const typename Singleton::String::const_iterator &, const typename Singleton::String::const_iterator &) final;
+        template<typename Character, typename Context=nullptr_t>
+        struct Singleton : Pattern<Character> {
+            const std::pair<
+                    std::function<bool(const Character &, const Context &)>,
+                    Context
+            > model;
 
-            const std::function<bool(const CharacterType &, const Context &)> describe;
-            const Context context;
+            CONSTRUCT_NAIVE(Singleton)
 
-            explicit Singleton(decltype(describe) &&, Context && = nullptr);
+            std::pair<bool, std::shared_ptr<Record<Character>>> match(
+                    const typename Traits<Character>::String::const_iterator &,
+                    const typename Traits<Character>::String::const_iterator &
+            ) const final;
         };
 
-        template<typename CharacterType>
-        struct Linear : Pattern<CharacterType> {
-            virtual ~Linear() = 0;
+        template<typename Character>
+        struct Binary : Pattern<Character> {
+            const std::array<std::shared_ptr<Pattern<Character>>, 2> model;
 
-            const std::list<std::pair<
-                    typename Linear::String,
-                    std::shared_ptr<Pattern<CharacterType>>
-            >> sequence;
-
-            Linear(decltype(sequence) &&);
+            CONSTRUCT_NAIVE(Binary)
         };
 
-        namespace linear {
+        namespace binary {
+            template<typename Character>
+            struct Union : Binary<Character> {
+                CONSTRUCT_TRANSFER(Union, Binary<Character>)
 
+                std::pair<bool, std::shared_ptr<Record<Character>>> match(
+                        const typename Traits<Character>::String::const_iterator &,
+                        const typename Traits<Character>::String::const_iterator &
+                ) const final;
+            };
 
+            template<typename Character>
+            struct Concatenation : Binary<Character> {
+                CONSTRUCT_TRANSFER(Concatenation, Binary<Character>)
+
+                std::pair<bool, std::shared_ptr<Record<Character>>> match(
+                        const typename Traits<Character>::String::const_iterator &,
+                        const typename Traits<Character>::String::const_iterator &
+                ) const final;
+            };
         }
+
+        template<typename Character>
+        struct KleeneClosure : Pattern<Character> {
+            std::shared_ptr<Pattern<Character>> model;
+
+            CONSTRUCT_NAIVE(KleeneClosure)
+
+            std::pair<bool, std::shared_ptr<Record<Character>>> match(
+                    const typename Traits<Character>::String::const_iterator &,
+                    const typename Traits<Character>::String::const_iterator &
+            ) const final;
+        };
     }
 }
+
+
+
+//namespace regular {
+//
+//
+//    namespace pattern {
+
+//        template<typename CharacterType>
+//        struct Linear : Pattern<CharacterType> {
+//            virtual ~Linear() = 0;
+//
+//            const std::list<std::pair<
+//                    typename Linear::String,
+//                    std::shared_ptr<Pattern<CharacterType>>
+//            >> sequence;
+//
+//            Linear(decltype(sequence) &&);
+//        };
+//
+//        namespace linear {
+//            template<typename CharacterType>
+//            struct Union : Linear<CharacterType> {
+//                struct Record : Pattern<CharacterType>::Record {
+//                    const typename Union::String key;
+//                    const std::shared_ptr<typename Pattern<CharacterType>::Record> value;
+//
+//                    Record(decltype(key) &&key, decltype(value) &&value);
+//
+//                    typename Union::Json json() final;
+//                };
+//
+//                std::shared_ptr<Record> match(const typename Union::String::const_iterator &, const typename Union::String::const_iterator &) final;
+//            };
+//
+//
+//        }
+//    }
+//}
+
+
+#undef CONSTRUCT_NAIVE
+#undef CONSTRUCT_TRANSFER
