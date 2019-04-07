@@ -81,14 +81,11 @@ namespace regular {
             ) const final;
         };
 
-        template<typename Character, typename Context>
+        template<typename Character>
         struct Singleton : Pattern<Character> {
+            const std::function<bool(const Character &)> describe;
 
-            std::function<bool(const Character &, const Context &)> describe;
-            Context context;
-
-            Singleton(const decltype(describe) &describe, Context &&context) :
-                    describe(describe), context(std::move(context)) {}
+            explicit Singleton(const decltype(describe) &describe) : describe(describe) {}
 
             std::pair<bool, std::shared_ptr<Record<Character>>> match(
                     const typename Traits<Character>::String::const_iterator &,
@@ -97,7 +94,13 @@ namespace regular {
         };
 
         namespace singleton {
+            template<typename Character, typename Context>
+            struct Closure : Singleton<Character> {
+                const Context context;
+                const std::function<bool(const Context &, const Character &)> depict;
 
+                Closure(Context &&, const decltype(depict) &);
+            };
         }
 
         template<typename Character>
@@ -139,8 +142,8 @@ namespace regular {
             };
 
             template<typename Character>
-            struct Complement : Binary<Character> {
-                explicit Complement(decltype(Binary<Character>::binary) &&binary) : Binary<Character>(std::move(binary)) {}
+            struct Difference : Binary<Character> {
+                explicit Difference(decltype(Binary<Character>::binary) &&binary) : Binary<Character>(std::move(binary)) {}
 
                 std::pair<bool, std::shared_ptr<Record<Character>>> match(
                         const typename Traits<Character>::String::const_iterator &,
@@ -182,15 +185,32 @@ namespace regular {
 
         std::shared_ptr<pattern::Empty<char>> pe();
 
-//        template<typename Context=nullptr_t>
-//        std::shared_ptr<pattern::Singleton<char, Context>> ps(const std::function<bool(const char &, const Context &)> &, Context && = nullptr);
-//
-//        std::shared_ptr<pattern::Singleton<char, nullptr_t>> psa();
-//
-//        std::shared_ptr<pattern::Singleton<char, std::pair<char, bool>>> psi(const char &, const bool & = true);
-//
-//        std::shared_ptr<pattern::Singleton<char, std::pair<Traits<char>::String, bool>>> psi(const Traits<char>::String &, const bool & = true);
-//
-//        std::shared_ptr<pattern::Singleton<char, std::pair<char, char>>> psr();
+        std::shared_ptr<pattern::Singleton<char>> ps(const std::function<bool(const char &)> &);
+
+        template<typename Context>
+        std::shared_ptr<pattern::singleton::Closure<char, Context>> ps(Context &&, const decltype(pattern::singleton::Closure<char, Context>::depict) &);
+
+        std::shared_ptr<pattern::Singleton<char>> psa();
+
+        std::shared_ptr<pattern::singleton::Closure<char, char>> psi(const char &);
+
+        std::shared_ptr<pattern::singleton::Closure<char, Traits<char>::String>> psi(Traits<char>::String &&);
+
+        std::shared_ptr<pattern::singleton::Closure<char, std::array<char, 2>>> psr(const char &, const char &);
+
+        std::shared_ptr<pattern::singleton::Closure<
+                char,
+                std::list<std::shared_ptr<pattern::Singleton<char>>>
+        >> psu(std::list<std::shared_ptr<pattern::Singleton<char>>> &&);
+
+        std::shared_ptr<pattern::singleton::Closure<
+                char,
+                std::list<std::shared_ptr<pattern::Singleton<char>>>
+        >> psi(std::list<std::shared_ptr<pattern::Singleton<char>>> &&);
+
+        std::shared_ptr<pattern::singleton::Closure<
+                char,
+                std::list<std::shared_ptr<pattern::Singleton<char>>>
+        >> psd(std::list<std::shared_ptr<pattern::Singleton<char>>> &&);
     }
 }

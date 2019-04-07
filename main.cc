@@ -13,25 +13,36 @@ int main(int argc, char *argv[]) {
 
     std::string s;
 
-    std::shared_ptr<Pattern<char>> empty = std::make_shared<pattern::Empty<char>>();
-    empty->match(s.cbegin(), s.cend());
+//    std::shared_ptr<Pattern<char>> empty = std::make_shared<pattern::Empty<char>>();
+//    empty->match(s.cbegin(), s.cend());
+//
+//    std::shared_ptr<Pattern<char>> singleton = std::make_shared<pattern::Singleton<char>>([](const char &c) {
+//        return true;
+//    });
+//    singleton->match(s.cbegin(), s.cend());
+//
+//    std::shared_ptr<Pattern<char>> un = std::make_shared<pattern::binary::Union<char>>(std::array{empty, singleton});
+//    un->match(s.cbegin(), s.cend());
+//
+//    std::shared_ptr<Pattern<char>> concat = std::make_shared<pattern::binary::Concatenation<char>>(std::array{singleton, un});
+//    un->match(s.cbegin(), s.cend());
+//
+//    std::shared_ptr<Pattern<char>> kleene = std::make_shared<pattern::KleeneClosure<char>>(concat);
+//    kleene->match(s.cbegin(), s.cend());
+//
+//    std::shared_ptr<Pattern<char>> intersection = std::make_shared<pattern::binary::Intersection<char>>(std::array{concat, kleene});
+//    intersection->match(s.cbegin(), s.cend());
 
-    std::shared_ptr<Pattern<char>> singleton = std::make_shared<pattern::Singleton<char, nullptr_t>>([](const char &c, const nullptr_t &) {
-        return true;
-    }, nullptr);
-    singleton->match(s.cbegin(), s.cend());
+    using namespace shortcut;
 
-    std::shared_ptr<Pattern<char>> un = std::make_shared<pattern::binary::Union<char>>(std::array{empty, singleton});
-    un->match(s.cbegin(), s.cend());
+    std::shared_ptr<pattern::Singleton<char>> p;
 
-    std::shared_ptr<Pattern<char>> concat = std::make_shared<pattern::binary::Concatenation<char>>(std::array{singleton, un});
-    un->match(s.cbegin(), s.cend());
-
-    std::shared_ptr<Pattern<char>> kleene = std::make_shared<pattern::KleeneClosure<char>>(concat);
-    kleene->match(s.cbegin(), s.cend());
-
-    std::shared_ptr<Pattern<char>> intersection = std::make_shared<pattern::binary::Intersection<char>>(std::array{concat, kleene});
-    intersection->match(s.cbegin(), s.cend());
+//    s = "t";
+//    p = psd({psu({psr('0', '9'), psr('a', 'z')}), psr('0', '9'), psr('0', '4')});
+    s = "1";
+    p = psd({psr('0', '9'), psr('0', '4'), psr('0', '1')});
+    auto pair = p->match(s.cbegin(), s.cend());
+    std::cout << pair.first << "----\n";
 
 //    /**
 //     * 手动预处理

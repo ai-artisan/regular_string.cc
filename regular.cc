@@ -18,16 +18,22 @@ namespace regular {
             return std::pair{true, std::make_shared<Record<Character>>(begin)};
         }
 
-        template<typename Character, typename Context>
+        template<typename Character>
         std::pair<bool, std::shared_ptr<Record < Character>>>
 
-        Singleton<Character, Context>::match(
+        Singleton<Character>::match(
                 const typename Traits<Character>::String::const_iterator &begin,
                 const typename Traits<Character>::String::const_iterator &end
         ) const {
-            return (begin != end && describe(*begin, context))
+            return (begin != end && describe(*begin))
                    ? std::pair{true, std::make_shared<Record<Character>>(std::next(begin))}
                    : std::pair{false, std::make_shared<Record<Character>>(begin)};
+        }
+
+        namespace singleton {
+            template<typename Character, typename Context>
+            Closure<Character, Context>::Closure(Context &&context, const decltype(depict) &depict):
+                    Singleton<Character>([&](const Character &c) { return this->depict(this->context, c); }), context(std::move(context)), depict(depict) {}
         }
 
         namespace binary {
@@ -83,7 +89,7 @@ namespace regular {
             template<typename Character>
             std::pair<bool, std::shared_ptr<Record < Character>>>
 
-            Complement<Character>::match(
+            Difference<Character>::match(
                     const typename Traits<Character>::String::const_iterator &begin,
                     const typename Traits<Character>::String::const_iterator &end
             ) const {
@@ -127,40 +133,93 @@ namespace regular {
             return std::make_shared<pattern::Empty<char>>();
         }
 
-//        template<typename Context>
-//        inline std::shared_ptr<pattern::Singleton<char, Context>> ps(const std::function<bool(const char &, const Context &)> &callback, Context &&context) {
-//            return std::make_shared<pattern::Singleton<char, Context>>(callback, std::forward<Context>(context));
-//        }
-//
-//        inline std::shared_ptr<pattern::Singleton<char, nullptr_t>> psa() {
-//            return std::make_shared<pattern::Singleton<char, nullptr_t>>([](const char &, const nullptr_t &) {
-//                return true;
-//            }, nullptr);
-//        }
-//
-//        std::shared_ptr<pattern::Singleton<char, std::pair<char, bool>>> psi(const char &c, const bool &is) {
-//            return std::make_shared<pattern::Singleton<char, std::pair<char, bool>>>(
-//                    std::pair{c, is},
-//                    [&](const char &c, const std::pair<char, bool> &si) -> bool {
-//                        return (!si.second) xor (c == si.first);
-//                    }
-//            );
-//        }
-//
-//        std::shared_ptr<pattern::Singleton<char, std::pair<Traits<char>::String, bool>>> psi(const Traits<char>::String &s, const bool &in) {
-//            return std::make_shared<pattern::Singleton<char, std::pair<Traits<char>::String, bool>>>(
-//                    std::pair{s, in},
-//                    [&](const char &c, const std::pair<Traits<char>::String, bool> &si) -> bool {
-//                        for (auto i = si.first.cbegin(); i != si.first.cend(); ({
-//                            if (c == *i) return si.second;
-//                            i++;
-//                        }));
-//                        return !si.second;
-//                    }
-//            );
-//        }
+        inline std::shared_ptr<pattern::Singleton<char>> ps(const std::function<bool(const char &)> &describe) {
+            return std::make_shared<pattern::Singleton<char>>(describe);
+        }
 
+        template<typename Context>
+        inline std::shared_ptr<pattern::singleton::Closure<char, Context>> ps(Context &&context, const decltype(pattern::singleton::Closure<char, Context>::depict) &depict) {
+            return std::make_shared<pattern::singleton::Closure<char, Context>>(std::forward<Context>(context), depict);
+        }
 
+        inline std::shared_ptr<pattern::Singleton<char>> psa() {
+            return std::make_shared<pattern::Singleton<char>>([](const char &) {
+                return true;
+            });
+        }
+
+        inline std::shared_ptr<pattern::singleton::Closure<char, char>> psi(const char &c0) {
+            return std::make_shared<pattern::singleton::Closure<char, char>>(char(c0), [](const char &c0, const char &c) -> bool {
+                return c == c0;
+            });
+        }
+
+        std::shared_ptr<pattern::singleton::Closure<char, Traits<char>::String>> psi(Traits<char>::String &&s) {
+            return std::make_shared<pattern::singleton::Closure<char, Traits<char>::String>>(std::move(s), [&](const Traits<char>::String &s, const char &c) -> bool {
+                for (auto i = s.cbegin(); i != s.cend(); ({
+                    if (c == *i) return true;
+                    i++;
+                }));
+                return false;
+            });
+        }
+
+        std::shared_ptr<pattern::singleton::Closure<char, std::array<char, 2>>> psr(const char &inf, const char &sup) {
+            return std::make_shared<pattern::singleton::Closure<char, std::array<char, 2>>>(std::array{inf, sup}, [&](const std::array<char, 2> &interval, const char &c) -> bool {
+                return interval[0] <= c && c <= interval[1];
+            });
+        }
+
+        std::shared_ptr<pattern::singleton::Closure<
+                char,
+                std::list<std::shared_ptr<pattern::Singleton<char>>>
+        >> psu(std::list<std::shared_ptr<pattern::Singleton<char>>> &&list) {
+            return std::make_shared<pattern::singleton::Closure<
+                    char,
+                    std::list<std::shared_ptr<pattern::Singleton<char>>>
+            >>(std::move(list), [&](const std::list<std::shared_ptr<pattern::Singleton<char>>> &list, const char &c) -> bool {
+                for (auto i = list.cbegin(); i != list.cend(); ({
+                    if ((*i)->describe(c)) return true;
+                    i++;
+                }));
+                return false;
+            });
+        }
+
+        std::shared_ptr<pattern::singleton::Closure<
+                char,
+                std::list<std::shared_ptr<pattern::Singleton<char>>>
+        >> psi(std::list<std::shared_ptr<pattern::Singleton<char>>> &&list) {
+            return std::make_shared<pattern::singleton::Closure<
+                    char,
+                    std::list<std::shared_ptr<pattern::Singleton<char>>>
+            >>(std::move(list), [&](const std::list<std::shared_ptr<pattern::Singleton<char>>> &list, const char &c) -> bool {
+                for (auto i = list.cbegin(); i != list.cend(); ({
+                    if (!(*i)->describe(c)) return false;
+                    i++;
+                }));
+                return true;
+            });
+        }
+
+        std::shared_ptr<pattern::singleton::Closure<
+                char,
+                std::list<std::shared_ptr<pattern::Singleton<char>>>
+        >> psd(std::list<std::shared_ptr<pattern::Singleton<char>>> &&list) {
+            return std::make_shared<pattern::singleton::Closure<
+                    char,
+                    std::list<std::shared_ptr<pattern::Singleton<char>>>
+            >>(std::move(list), [&](const std::list<std::shared_ptr<pattern::Singleton<char>>> &list, const char &c) -> bool {
+                bool b = false;
+                for (auto i = list.cbegin(); i != list.cend(); ({
+                    std::cout << (*i)->describe(c) << ' ' << b << "-----\n";
+                    if (!((*i)->describe(c) xor b)) return false;
+                    b = !b;
+                    i++;
+                }));
+                return true;
+            });
+        }
     }
 }
 
