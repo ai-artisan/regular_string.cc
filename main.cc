@@ -37,10 +37,10 @@ int main(int argc, char *argv[]) {
 
     std::shared_ptr<pattern::Singleton<char>> p;
 
-//    s = "t";
-//    p = psd({psu({psr('0', '9'), psr('a', 'z')}), psr('0', '9'), psr('0', '4')});
-    s = "1";
-    p = psd({psr('0', '9'), psr('0', '4'), psr('0', '1')});
+    s = "5";
+    p = psd({psu({psr('0', '9'), psr('a', 'z')}), psr('0', '9'), psr('0', '4')});
+//    s = "3";
+//    p = psd({psr('0', '9'), psr('0', '4'), psr('0', '1')});
     auto pair = p->match(s.cbegin(), s.cend());
     std::cout << pair.first << "----\n";
 

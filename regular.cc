@@ -211,13 +211,11 @@ namespace regular {
                     std::list<std::shared_ptr<pattern::Singleton<char>>>
             >>(std::move(list), [&](const std::list<std::shared_ptr<pattern::Singleton<char>>> &list, const char &c) -> bool {
                 bool b = false;
-                for (auto i = list.cbegin(); i != list.cend(); ({
-                    std::cout << (*i)->describe(c) << ' ' << b << "-----\n";
-                    if (!((*i)->describe(c) xor b)) return false;
-                    b = !b;
+                for (auto i = list.crbegin(); i != list.crend(); ({
+                    b = (*i)->describe(c) && !b;
                     i++;
                 }));
-                return true;
+                return b;
             });
         }
     }
