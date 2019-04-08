@@ -35,14 +35,23 @@ int main(int argc, char *argv[]) {
 
     using namespace shortcut;
 
-    std::shared_ptr<pattern::Singleton<char>> p;
+    std::shared_ptr<Pattern<char>> p;
 
-    s = "5";
-    p = psd({psu({psr('0', '9'), psr('a', 'z')}), psr('0', '9'), psr('0', '4')});
-//    s = "3";
-//    p = psd({psr('0', '9'), psr('0', '4'), psr('0', '1')});
-    auto pair = p->match(s.cbegin(), s.cend());
-    std::cout << pair.first << "----\n";
+    s = "asdf1234QWER==--==";
+//    p = pd(pu(psr('0', '9'), psr('a', 'z')), pd(pss("asfd1234"), pu(psc('a'), psc('1'))));
+//    p = psd({psu({psr('0', '9'), psr('a', 'z')}), pss("asfd1234"), psu({psc('a'), psc('1')})});
+    p = pk(pu({{"digit",  psr('0', '9')},
+               {"letter", psr('a', 'z')},
+               {"LETTER", psr('A', 'Z')}}));
+    auto m = p->match(s.cbegin(), s.cend());
+    std::cout << m.success << "\n";
+    std::cout << std::string(s.cbegin(), m.record->end) << "\n";
+
+    auto l = m.record->as<rk>()->list;
+    for (auto i = l.cbegin(); i != l.cend(); ({
+        std::cout << (*i)->as<rl>()->key << '\n';
+        i++;
+    }));
 
 //    /**
 //     * 手动预处理
