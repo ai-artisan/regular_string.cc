@@ -9,49 +9,27 @@
 
 
 int main(int argc, char *argv[]) {
-    using namespace regular;
+    using namespace regular::shortcut;
 
     std::string s;
 
-//    std::shared_ptr<Pattern<char>> empty = std::make_shared<pattern::Empty<char>>();
-//    empty->match(s.cbegin(), s.cend());
-//
-//    std::shared_ptr<Pattern<char>> singleton = std::make_shared<pattern::Singleton<char>>([](const char &c) {
-//        return true;
-//    });
-//    singleton->match(s.cbegin(), s.cend());
-//
-//    std::shared_ptr<Pattern<char>> un = std::make_shared<pattern::binary::Union<char>>(std::array{empty, singleton});
-//    un->match(s.cbegin(), s.cend());
-//
-//    std::shared_ptr<Pattern<char>> concat = std::make_shared<pattern::binary::Concatenation<char>>(std::array{singleton, un});
-//    un->match(s.cbegin(), s.cend());
-//
-//    std::shared_ptr<Pattern<char>> kleene = std::make_shared<pattern::KleeneClosure<char>>(concat);
-//    kleene->match(s.cbegin(), s.cend());
-//
-//    std::shared_ptr<Pattern<char>> intersection = std::make_shared<pattern::binary::Intersection<char>>(std::array{concat, kleene});
-//    intersection->match(s.cbegin(), s.cend());
+    std::shared_ptr<regular::Pattern<char>> p;
 
-    using namespace shortcut;
-
-    std::shared_ptr<Pattern<char>> p;
-
-    s = "asdf1234QWER==--==";
-//    p = pd(pu(psr('0', '9'), psr('a', 'z')), pd(pss("asfd1234"), pu(psc('a'), psc('1'))));
+    s = "1sdf1234QWER==--==";
+    p = psd({psr('0', '9'), psr('0', '4'), psr('0', '2')});
 //    p = psd({psu({psr('0', '9'), psr('a', 'z')}), pss("asfd1234"), psu({psc('a'), psc('1')})});
-    p = pk(pu({{"digit",  psr('0', '9')},
-               {"letter", psr('a', 'z')},
-               {"LETTER", psr('A', 'Z')}}));
+//    p = pk(pu({{"digit",  psr('0', '9')},
+//               {"letter", psr('a', 'z')},
+//               {"LETTER", psr('A', 'Z')}}));
     auto m = p->match(s.cbegin(), s.cend());
     std::cout << m.success << "\n";
     std::cout << std::string(s.cbegin(), m.record->end) << "\n";
 
-    auto l = m.record->as<rk>()->list;
-    for (auto i = l.cbegin(); i != l.cend(); ({
-        std::cout << (*i)->as<rls>()->key << '\n';
-        i++;
-    }));
+//    auto l = m.record->as<rk>()->list;
+//    for (auto i = l.cbegin(); i != l.cend(); ({
+//        std::cout << (*i)->as<rls>()->key << '\n';
+//        i++;
+//    }));
 
 //    /**
 //     * 手动预处理

@@ -51,16 +51,15 @@ namespace regular {
                     const typename Traits<Character>::String::const_iterator &begin,
                     const typename Traits<Character>::String::const_iterator &end
             ) const {
-                std::array<std::shared_ptr<Record<Character>>, 2> array = {nullptr, nullptr};
+                std::array<std::shared_ptr<Record<Character>>, 2> every = {nullptr, nullptr};
                 auto matched = this->binary[0]->match(begin, end);
-                array[0] = matched.record;
-                auto end1 = matched.record->end;
+                every[0] = matched.record;
                 if (matched.success) {
-                    matched = this->binary[1]->match(begin, end1);
-                    array[1] = matched.record;
-                    matched.success &= (matched.record->end == end1);
+                    matched = this->binary[1]->match(begin, every[0]->end);
+                    every[1] = matched.record;
+                    matched.success &= (matched.record->end == every[0]->end);
                 }
-                return {matched.success, std::make_shared<record::BinaryEvery<Character>>(end1, std::move(array))};
+                return {matched.success, std::make_shared<record::BinaryEvery<Character>>(every[1]->end, std::move(every))};
             }
 
             template<typename Character>
@@ -83,14 +82,14 @@ namespace regular {
                     const typename Traits<Character>::String::const_iterator &begin,
                     const typename Traits<Character>::String::const_iterator &end
             ) const {
-                std::array<std::shared_ptr<Record<Character>>, 2> array = {nullptr, nullptr};
+                std::array<std::shared_ptr<Record<Character>>, 2> every = {nullptr, nullptr};
                 auto matched = this->binary[0]->match(begin, end);
-                array[0] = matched.record;
+                every[0] = matched.record;
                 if (matched.success) {
                     matched = this->binary[1]->match(matched.record->end, end);
-                    array[1] = matched.record;
+                    every[1] = matched.record;
                 }
-                return {matched.success, std::make_shared<record::BinaryEvery<Character>>(array[1]->end, std::move(array))};
+                return {matched.success, std::make_shared<record::BinaryEvery<Character>>(every[1]->end, std::move(every))};
             }
         }
 
@@ -110,6 +109,21 @@ namespace regular {
                     } else i++;
                 }));
                 return {matched.success, std::make_shared<record::LinearSome<Character>>(matched.record->end, std::move(key), matched.record)};
+            }
+
+            template<typename Character>
+            typename Pattern<Character>::Matched Intersection<Character>::match(
+                    const typename Traits<Character>::String::const_iterator &begin,
+                    const typename Traits<Character>::String::const_iterator &end
+            ) const {
+                std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> every;
+
+                auto end1 = end;
+                for (auto i = this->linear.cbegin(); i != this->linear.cend(); ({
+                    auto matched = i->value->match(begin, end1);
+                    if (matched.success && matched.record->end == end1) i++;
+                    else;//...
+                }));
             }
         }
 
@@ -219,10 +233,10 @@ namespace regular {
             >>(list, [&](const std::list<std::shared_ptr<pattern::Singleton<char>>> &list, const char &c) -> bool {
                 bool b = false;
                 for (auto i = list.crbegin(); i != list.crend(); ({
-                    b = !b && (*i)->describe(c);
+                    b = (*i)->describe(c) && !b;
                     i++;
                 }));
-                return (list.size() % 2 == 0) xor b;
+                return b;
             });
         }
 

@@ -68,6 +68,14 @@ namespace regular {
         };
 
         template<typename Character>
+        struct LinearEvery : Record<Character> {
+            const std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> every;
+
+            LinearEvery(const decltype(Record<Character>::end) &end, decltype(every) &&every) :
+                    Record<Character>(end), every(std::move(every)) {}
+        };
+
+        template<typename Character>
         struct KleeneClosure : Record<Character> {
             const std::list<std::shared_ptr<Record<Character>>> list;
 
@@ -191,6 +199,16 @@ namespace regular {
             template<typename Character>
             struct Union : Linear<Character> {
                 explicit Union(decltype(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
+
+                typename Pattern<Character>::Matched match(
+                        const typename Traits<Character>::String::const_iterator &,
+                        const typename Traits<Character>::String::const_iterator &
+                ) const final;
+            };
+
+            template<typename Character>
+            struct Intersection : Linear<Character> {
+                explicit Intersection(decltype(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
 
                 typename Pattern<Character>::Matched match(
                         const typename Traits<Character>::String::const_iterator &,
