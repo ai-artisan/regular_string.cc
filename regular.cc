@@ -43,7 +43,7 @@ namespace regular {
                     index = true;
                     matched = this->binary[1]->match(begin, end);
                 }
-                return {matched.success, std::make_shared<record::BinaryReduced<Character>>(matched.record->end, index, matched.record)};
+                return {matched.success, std::make_shared<record::BinarySome<Character>>(matched.record->end, index, matched.record)};
             }
 
             template<typename Character>
@@ -51,13 +51,16 @@ namespace regular {
                     const typename Traits<Character>::String::const_iterator &begin,
                     const typename Traits<Character>::String::const_iterator &end
             ) const {
-                bool index = false;
+                std::array<std::shared_ptr<Record<Character>>, 2> array = {nullptr, nullptr};
                 auto matched = this->binary[0]->match(begin, end);
+                array[0] = matched.record;
+                auto end1 = matched.record->end;
                 if (matched.success) {
-                    index = true;
-                    matched = this->binary[1]->match(begin, matched.record->end);
+                    matched = this->binary[1]->match(begin, end1);
+                    array[1] = matched.record;
+                    matched.success &= (matched.record->end == end1);
                 }
-                return {matched.success, std::make_shared<record::BinaryReduced<Character>>(matched.record->end, index, matched.record)};
+                return {matched.success, std::make_shared<record::BinaryEvery<Character>>(end1, std::move(array))};
             }
 
             template<typename Character>
@@ -72,7 +75,7 @@ namespace regular {
                     auto matched1 = this->binary[1]->match(begin, matched.record->end);
                     if (matched1.success) matched = {false, matched1.record};
                 }
-                return {matched.success, std::make_shared<record::BinaryReduced<Character>>(matched.record->end, index, matched.record)};
+                return {matched.success, std::make_shared<record::BinarySome<Character>>(matched.record->end, index, matched.record)};
             }
 
             template<typename Character>
@@ -87,7 +90,7 @@ namespace regular {
                     matched = this->binary[1]->match(matched.record->end, end);
                     array[1] = matched.record;
                 }
-                return {matched.success, std::make_shared<record::BinaryConcatenation<Character>>(array[1]->end, std::move(array))};
+                return {matched.success, std::make_shared<record::BinaryEvery<Character>>(array[1]->end, std::move(array))};
             }
         }
 
@@ -106,7 +109,7 @@ namespace regular {
                         i = this->linear.cend();
                     } else i++;
                 }));
-                return {matched.success, std::make_shared<record::LinearReduced<Character>>(matched.record->end, std::move(key), matched.record)};
+                return {matched.success, std::make_shared<record::LinearSome<Character>>(matched.record->end, std::move(key), matched.record)};
             }
         }
 

@@ -42,29 +42,29 @@ namespace regular {
 
     namespace record {
         template<typename Character>
-        struct BinaryReduced : Record<Character> {
+        struct BinarySome : Record<Character> {
             const bool index;
-            const std::shared_ptr<Record<Character>> value;
+            const std::shared_ptr<Record<Character>> some;
 
-            BinaryReduced(const decltype(Record<Character>::end) &end, const decltype(index) &index, const decltype(value) &value) :
-                    Record<Character>(end), index(index), value(value) {}
+            BinarySome(const decltype(Record<Character>::end) &end, const decltype(index) &index, const decltype(some) &some) :
+                    Record<Character>(end), index(index), some(some) {}
         };
 
         template<typename Character>
-        struct LinearReduced : Record<Character> {
+        struct BinaryEvery : Record<Character> {
+            const std::array<std::shared_ptr<Record<Character>>, 2> every;
+
+            BinaryEvery(const decltype(Record<Character>::end) &end, decltype(every) &&every) :
+                    Record<Character>(end), every(std::move(every)) {}
+        };
+
+        template<typename Character>
+        struct LinearSome : Record<Character> {
             const typename Traits<Character>::String key;
-            const std::shared_ptr<Record<Character>> value;
+            const std::shared_ptr<Record<Character>> some;
 
-            LinearReduced(const decltype(Record<Character>::end) &end, decltype(key) &&key, const decltype(value) &value) :
-                    Record<Character>(end), key(std::move(key)), value(value) {}
-        };
-
-        template<typename Character>
-        struct BinaryConcatenation : Record<Character> {
-            const std::array<std::shared_ptr<Record<Character>>, 2> binary;
-
-            BinaryConcatenation(const decltype(Record<Character>::end) &end, decltype(binary) &&binary) :
-                    Record<Character>(end), binary(std::move(binary)) {}
+            LinearSome(const decltype(Record<Character>::end) &end, decltype(key) &&key, const decltype(some) &some) :
+                    Record<Character>(end), key(std::move(key)), some(some) {}
         };
 
         template<typename Character>
@@ -214,9 +214,9 @@ namespace regular {
 
     namespace shortcut {
         using r=Record<char>;
-        using rb=record::BinaryReduced<char>;
-        using rl=record::LinearReduced<char>;
-        using rbc=record::BinaryConcatenation<char>;
+        using rbs=record::BinarySome<char>;
+        using rbe=record::BinaryEvery<char>;
+        using rls=record::LinearSome<char>;
         using rk=record::KleeneClosure<char>;
 
         std::shared_ptr<pattern::Empty<char>> pe();

@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 
     auto l = m.record->as<rk>()->list;
     for (auto i = l.cbegin(); i != l.cend(); ({
-        std::cout << (*i)->as<rl>()->key << '\n';
+        std::cout << (*i)->as<rls>()->key << '\n';
         i++;
     }));
 
