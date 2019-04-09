@@ -41,23 +41,6 @@ namespace regular {
 
     namespace record {
         template<typename Character>
-        struct BinarySome : Record<Character> {
-            const bool index;
-            const std::shared_ptr<Record<Character>> some;
-
-            BinarySome(const decltype(Record<Character>::end) &end, const decltype(index) &index, const decltype(some) &some) :
-                    Record<Character>(end), index(index), some(some) {}
-        };
-
-        template<typename Character>
-        struct BinaryEvery : Record<Character> {
-            const std::array<std::shared_ptr<Record<Character>>, 2> every;
-
-            BinaryEvery(const decltype(Record<Character>::end) &end, decltype(every) &&every) :
-                    Record<Character>(end), every(std::move(every)) {}
-        };
-
-        template<typename Character>
         struct LinearSome : Record<Character> {
             const typename Traits<Character>::String key;
             const std::shared_ptr<Record<Character>> some;
@@ -127,55 +110,6 @@ namespace regular {
                 const std::function<bool(const Context &, const Character &)> depict;
 
                 Closure(Context &&, const decltype(depict) &);
-            };
-        }
-
-        template<typename Character>
-        struct Binary : Pattern<Character> {
-            const std::array<std::shared_ptr<Pattern<Character>>, 2> binary;
-
-            explicit Binary(decltype(binary) &&binary) : binary(std::move(binary)) {}
-        };
-
-        namespace binary {
-            template<typename Character>
-            struct Union : Binary<Character> {
-                explicit Union(decltype(Binary<Character>::binary) &&binary) : Binary<Character>(std::move(binary)) {}
-
-                typename Pattern<Character>::Matched match(
-                        const typename Traits<Character>::String::const_iterator &,
-                        const typename Traits<Character>::String::const_iterator &
-                ) const final;
-            };
-
-            template<typename Character>
-            struct Intersection : Binary<Character> {
-                explicit Intersection(decltype(Binary<Character>::binary) &&binary) : Binary<Character>(std::move(binary)) {}
-
-                typename Pattern<Character>::Matched match(
-                        const typename Traits<Character>::String::const_iterator &,
-                        const typename Traits<Character>::String::const_iterator &
-                ) const final;
-            };
-
-            template<typename Character>
-            struct Difference : Binary<Character> {
-                explicit Difference(decltype(Binary<Character>::binary) &&binary) : Binary<Character>(std::move(binary)) {}
-
-                typename Pattern<Character>::Matched match(
-                        const typename Traits<Character>::String::const_iterator &,
-                        const typename Traits<Character>::String::const_iterator &
-                ) const final;
-            };
-
-            template<typename Character>
-            struct Concatenation : Binary<Character> {
-                explicit Concatenation(decltype(Binary<Character>::binary) &&binary) : Binary<Character>(std::move(binary)) {}
-
-                typename Pattern<Character>::Matched match(
-                        const typename Traits<Character>::String::const_iterator &,
-                        const typename Traits<Character>::String::const_iterator &
-                ) const final;
             };
         }
 
@@ -279,8 +213,6 @@ namespace regular {
         ~hub() = delete;
 
         using rt=Record<Character>;
-        using rbst=record::BinarySome<Character>;
-        using rbet=record::BinaryEvery<Character>;
         using rlst=record::LinearSome<Character>;
         using rlet=record::LinearEvery<Character>;
         using rkt=record::KleeneClosure<Character>;
@@ -290,11 +222,6 @@ namespace regular {
         using pst=pattern::Singleton<Character>;
         template<typename Context>
         using psct=pattern::singleton::Closure<Character, Context>;
-        using pbt=pattern::Binary<Character>;
-        using pbut=pattern::binary::Union<Character>;
-        using pbit=pattern::binary::Intersection<Character>;
-        using pbdt=pattern::binary::Difference<Character>;
-        using pbct=pattern::binary::Concatenation<Character>;
         using plt=pattern::Linear<Character>;
         using plut=pattern::linear::Union<Character>;
         using plit=pattern::linear::Intersection<Character>;
@@ -325,16 +252,6 @@ namespace regular {
 
         static std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psd(std::list<std::shared_ptr<pst>> &&);
 
-        static std::shared_ptr<pbut> pbu(const std::shared_ptr<pt> &, const std::shared_ptr<pt> &);
-
-        static std::shared_ptr<pbit> pbi(const std::shared_ptr<pt> &, const std::shared_ptr<pt> &);
-
-        static std::shared_ptr<pbdt> pbd(const std::shared_ptr<pt> &, const std::shared_ptr<pt> &);
-
-        static std::shared_ptr<pbct> pbc(const std::shared_ptr<pt> &, const std::shared_ptr<pt> &);
-
-        static std::shared_ptr<pt> pbc(const typename Traits<Character>::String &);
-
         static std::shared_ptr<plut> plu(std::list<typename plt::Item> &&);
 
         static std::shared_ptr<plit> pli(std::list<typename plt::Item> &&);
@@ -355,8 +272,6 @@ namespace regular {
     namespace shortcut {
         namespace narrow {
             using rt=hub<char>::rt;
-            using rbst=hub<char>::rbst;
-            using rbet=hub<char>::rbet;
             using rlst=hub<char>::rlst;
             using rlet=hub<char>::rlet;
             using rkt=hub<char>::rkt;
@@ -366,11 +281,6 @@ namespace regular {
             using pst=hub<char>::pst;
             template<typename Context>
             using psct=hub<char>::psct<Context>;
-            using pbt=hub<char>::pbt;
-            using pbut=hub<char>::pbut;
-            using pbit=hub<char>::pbit;
-            using pbdt=hub<char>::pbdt;
-            using pbct=hub<char>::pbct;
             using plt=hub<char>::plt;
             using plut=hub<char>::plut;
             using plit=hub<char>::plit;
@@ -401,16 +311,6 @@ namespace regular {
 
             inline std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psd(std::list<std::shared_ptr<pst>> &&l) { return hub<char>::psd(std::move(l)); }
 
-            inline std::shared_ptr<pbut> pbu(const std::shared_ptr<pt> &p, const std::shared_ptr<pt> &q) { return hub<char>::pbu(p, q); }
-
-            inline std::shared_ptr<pbit> pbi(const std::shared_ptr<pt> &p, const std::shared_ptr<pt> &q) { return hub<char>::pbi(p, q); }
-
-            inline std::shared_ptr<pbdt> pbd(const std::shared_ptr<pt> &p, const std::shared_ptr<pt> &q) { return hub<char>::pbd(p, q); }
-
-            inline std::shared_ptr<pbct> pbc(const std::shared_ptr<pt> &p, const std::shared_ptr<pt> &q) { return hub<char>::pbc(p, q); }
-
-            inline std::shared_ptr<pt> pbc(const typename Traits<char>::String &s) { return hub<char>::pbc(s); }
-
             inline std::shared_ptr<plut> plu(std::list<typename plt::Item> &&l) { return hub<char>::plu(std::move(l)); }
 
             inline std::shared_ptr<plit> pli(std::list<typename plt::Item> &&l) { return hub<char>::pli(std::move(l)); }
@@ -429,8 +329,6 @@ namespace regular {
         }
         namespace wide {
             using wrt=hub<wchar_t>::rt;
-            using wrbst=hub<wchar_t>::rbst;
-            using wrbet=hub<wchar_t>::rbet;
             using wrlst=hub<wchar_t>::rlst;
             using wrlet=hub<wchar_t>::rlet;
             using wrkt=hub<wchar_t>::rkt;
@@ -440,11 +338,6 @@ namespace regular {
             using wpst=hub<wchar_t>::pst;
             template<typename Context>
             using wpsct=hub<wchar_t>::psct<Context>;
-            using wpbt=hub<wchar_t>::pbt;
-            using wpbut=hub<wchar_t>::pbut;
-            using wpbit=hub<wchar_t>::pbit;
-            using wpbdt=hub<wchar_t>::pbdt;
-            using wpbct=hub<wchar_t>::pbct;
             using wplt=hub<wchar_t>::plt;
             using wplut=hub<wchar_t>::plut;
             using wplit=hub<wchar_t>::plit;
@@ -474,16 +367,6 @@ namespace regular {
             inline std::shared_ptr<wpsct<std::list<std::shared_ptr<wpst>>>> wpsi(std::list<std::shared_ptr<wpst>> &&l) { return hub<wchar_t>::psi(std::move(l)); }
 
             inline std::shared_ptr<wpsct<std::list<std::shared_ptr<wpst>>>> wpsd(std::list<std::shared_ptr<wpst>> &&l) { return hub<wchar_t>::psd(std::move(l)); }
-
-            inline std::shared_ptr<wpbut> wpbu(const std::shared_ptr<wpt> &p, const std::shared_ptr<wpt> &q) { return hub<wchar_t>::pbu(p, q); }
-
-            inline std::shared_ptr<wpbit> wpbi(const std::shared_ptr<wpt> &p, const std::shared_ptr<wpt> &q) { return hub<wchar_t>::pbi(p, q); }
-
-            inline std::shared_ptr<wpbdt> wpbd(const std::shared_ptr<wpt> &p, const std::shared_ptr<wpt> &q) { return hub<wchar_t>::pbd(p, q); }
-
-            inline std::shared_ptr<wpbct> wpbc(const std::shared_ptr<wpt> &p, const std::shared_ptr<wpt> &q) { return hub<wchar_t>::pbc(p, q); }
-
-            inline std::shared_ptr<wpt> wpbc(const typename Traits<wchar_t>::String &s) { return hub<wchar_t>::pbc(s); }
 
             inline std::shared_ptr<wplut> wplu(std::list<typename wplt::Item> &&l) { return hub<wchar_t>::plu(std::move(l)); }
 

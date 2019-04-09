@@ -44,69 +44,6 @@ namespace regular {
                     Singleton<Character>([&](const Character &c) { return this->depict(this->context, c); }), context(std::move(context)), depict(depict) {}
         }
 
-        namespace binary {
-            template<typename Character>
-            typename Pattern<Character>::Matched Union<Character>::match(
-                    const typename Traits<Character>::String::const_iterator &begin,
-                    const typename Traits<Character>::String::const_iterator &end
-            ) const {
-                bool index = false;
-                auto matched = this->binary[0]->match(begin, end);
-                if (!matched.success) {
-                    index = true;
-                    matched = this->binary[1]->match(begin, end);
-                }
-                return {matched.success, std::make_shared<record::BinarySome<Character>>(matched.record->end, index, matched.record)};
-            }
-
-            template<typename Character>
-            typename Pattern<Character>::Matched Intersection<Character>::match(
-                    const typename Traits<Character>::String::const_iterator &begin,
-                    const typename Traits<Character>::String::const_iterator &end
-            ) const {
-                bool success = true;
-                std::array<std::shared_ptr<Record<Character>>, 2> every = {nullptr, nullptr};
-                auto matched = this->binary[0]->match(begin, end);
-                every[0] = matched.record;
-                if (matched.success) {
-                    matched = this->binary[1]->match(begin, every[0]->end);
-                    every[1] = matched.record;
-                    if (matched.record->end != every[0]->end) success = false;
-                } else success = false;
-                return {matched.success, std::make_shared<record::BinaryEvery<Character>>(matched.record->end, std::move(every))};
-            }
-
-            template<typename Character>
-            typename Pattern<Character>::Matched Difference<Character>::match(
-                    const typename Traits<Character>::String::const_iterator &begin,
-                    const typename Traits<Character>::String::const_iterator &end
-            ) const {
-                bool index = false;
-                auto matched = this->binary[0]->match(begin, end);
-                if (matched.success) {
-                    index = true;
-                    auto matched1 = this->binary[1]->match(begin, matched.record->end);
-                    if (matched1.success && matched1.record->end == matched.record->end) matched = {false, matched1.record};
-                }
-                return {matched.success, std::make_shared<record::BinarySome<Character>>(matched.record->end, index, matched.record)};
-            }
-
-            template<typename Character>
-            typename Pattern<Character>::Matched Concatenation<Character>::match(
-                    const typename Traits<Character>::String::const_iterator &begin,
-                    const typename Traits<Character>::String::const_iterator &end
-            ) const {
-                std::array<std::shared_ptr<Record<Character>>, 2> every = {nullptr, nullptr};
-                auto matched = this->binary[0]->match(begin, end);
-                every[0] = matched.record;
-                if (matched.success) {
-                    matched = this->binary[1]->match(matched.record->end, end);
-                    every[1] = matched.record;
-                }
-                return {matched.success, std::make_shared<record::BinaryEvery<Character>>(matched.record->end, std::move(every))};
-            }
-        }
-
         namespace linear {
             template<typename Character>
             typename Pattern<Character>::Matched Union<Character>::match(
@@ -353,37 +290,6 @@ namespace regular {
             }));
             return b;
         });
-    }
-
-    template<typename Character>
-    inline std::shared_ptr<typename hub<Character>::pbut> hub<Character>::pbu(const std::shared_ptr<pt> &p0, const std::shared_ptr<pt> &p1) {
-        return std::make_shared<pbut>(std::array{p0, p1});
-    }
-
-    template<typename Character>
-    inline std::shared_ptr<typename hub<Character>::pbit> hub<Character>::pbi(const std::shared_ptr<pt> &p0, const std::shared_ptr<pt> &p1) {
-        return std::make_shared<pbit>(std::array{p0, p1});
-    }
-
-    template<typename Character>
-    inline std::shared_ptr<typename hub<Character>::pbdt> hub<Character>::pbd(const std::shared_ptr<pt> &p0, const std::shared_ptr<pt> &p1) {
-        return std::make_shared<pbdt>(std::array{p0, p1});
-    }
-
-    template<typename Character>
-    inline std::shared_ptr<typename hub<Character>::pbct> hub<Character>::pbc(const std::shared_ptr<pt> &p0, const std::shared_ptr<pt> &p1) {
-        return std::make_shared<pbct>(std::array{p0, p1});
-    }
-
-    template<typename Character>
-    std::shared_ptr<typename hub<Character>::pt> hub<Character>::pbc(const typename Traits<Character>::String &s) {
-        std::shared_ptr<pt> p = po();
-        for (auto i = s.crbegin(); i != s.crend(); ({
-            std::array<std::shared_ptr<pt>, 2> binary = {psc(*i), p};
-            p = std::make_shared<pbct>(std::move(binary));
-            i++;
-        }));
-        return p;
     }
 
     template<typename Character>
