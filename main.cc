@@ -9,16 +9,13 @@
 
 
 int main(int argc, char *argv[]) {
-    using namespace regular::shortcut;
+    using $=regular::shortcut<wchar_t>;
 
-    std::string s;
-    std::shared_ptr<regular::Pattern<char>> p;
-
-    p = pld({pss("1234"), pss("2345"), pss("3456")});
-    s = "";
+    std::wstring s = L"顿";
+    $::pt p = $::pld({$::pss(L"阿斯顿分"), $::pss(L"斯顿分果"), $::pss(L"顿分果后")});
     auto m = p->match(s.cbegin(), s.cend());
-    std::cout << m.success << '\n';
-    std::cout << std::string(s.cbegin(), m.record->end) << '\n';
+    std::wcout << m.success << L'\n';
+    std::wcout << std::wstring(s.cbegin(), m.record->end) << L'\n';
 
 //    /**
 //     * 手动预处理

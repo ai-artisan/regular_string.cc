@@ -184,7 +184,7 @@ namespace regular {
                 std::shared_ptr<Pattern<Character>> value;
 
                 template<typename Value>
-                /*explicit*/ Item(Value &&value) : key(""), value(std::forward<Value>(value)) {}
+                /*explicit*/ Item(Value &&value) : key(0, 0), value(std::forward<Value>(value)) {}
 
                 Item(decltype(key) &&key, const decltype(value) &value) :
                         key(std::move(key)), value(value) {}
@@ -250,60 +250,79 @@ namespace regular {
         };
     }
 
-    namespace shortcut {
-        using r=Record<char>;
-        using rbs=record::BinarySome<char>;
-        using rbe=record::BinaryEvery<char>;
-        using rls=record::LinearSome<char>;
-        using rle=record::LinearEvery<char>;
-        using rk=record::KleeneClosure<char>;
+    template<typename Character>
+    struct shortcut {
+        ~shortcut() = delete;
 
-        std::shared_ptr<pattern::Empty<char>> pe();
+        using rt=std::shared_ptr<Record<Character>>;
+        using rbst=std::shared_ptr<record::BinarySome<Character>>;
+        using rbet=std::shared_ptr<record::BinaryEvery<Character>>;
+        using rlst=std::shared_ptr<record::LinearSome<Character>>;
+        using rlet=std::shared_ptr<record::LinearEvery<Character>>;
+        using rkt=std::shared_ptr<record::KleeneClosure<Character>>;
 
-        std::shared_ptr<pattern::Singleton<char>> ps(const std::function<bool(const char &)> &);
+        using pt=std::shared_ptr<Pattern<Character>>;
+        using pst=std::shared_ptr<pattern::Singleton<Character>>;
+        template<typename Context>
+        using psct=std::shared_ptr<pattern::singleton::Closure<Character, Context>>;
+        using pbt=std::shared_ptr<pattern::Binary<Character>>;
+        using pbut=std::shared_ptr<pattern::binary::Union<Character>>;
+        using pbit=std::shared_ptr<pattern::binary::Intersection<Character>>;
+        using pbdt=std::shared_ptr<pattern::binary::Difference<Character>>;
+        using pbct=std::shared_ptr<pattern::binary::Concatenation<Character>>;
+        using plt=std::shared_ptr<pattern::Linear<Character>>;
+        using plut=std::shared_ptr<pattern::linear::Union<Character>>;
+        using plit=std::shared_ptr<pattern::linear::Intersection<Character>>;
+        using pldt=std::shared_ptr<pattern::linear::Difference<Character>>;
+        using plct=std::shared_ptr<pattern::linear::Concatenation<Character>>;
+        using pkt=std::shared_ptr<pattern::KleeneClosure<Character>>;
+
+        static std::shared_ptr<pattern::Empty<Character>> pe();
+
+        static std::shared_ptr<pattern::Singleton<Character>> ps(const std::function<bool(const Character &)> &);
 
         template<typename Context>
-        std::shared_ptr<pattern::singleton::Closure<char, Context>> ps(Context &&, const decltype(pattern::singleton::Closure<char, Context>::depict) &);
+        static std::shared_ptr<pattern::singleton::Closure<Character, Context>> ps(Context &&, const decltype(pattern::singleton::Closure<Character, Context>::depict) &);
 
-        std::shared_ptr<pattern::Singleton<char>> psa();
+        static std::shared_ptr<pattern::Singleton<Character>> psa();
 
-        std::shared_ptr<pattern::singleton::Closure<char, char>> psc(const char &);
+        static std::shared_ptr<pattern::singleton::Closure<Character, Character>> psc(const Character &);
 
-        std::shared_ptr<pattern::singleton::Closure<char, Traits<char>::String>> pss(Traits<char>::String &&);
+        static std::shared_ptr<pattern::singleton::Closure<Character, typename Traits<Character>::String>> pss(typename Traits<Character>::String &&);
 
-        std::shared_ptr<pattern::singleton::Closure<char, std::array<char, 2>>> psr(const char &, const char &);
+        static std::shared_ptr<pattern::singleton::Closure<Character, std::array<Character, 2>>> psr(const Character &, const Character &);
 
-        std::shared_ptr<pattern::singleton::Closure<
-                char,
-                std::list<std::shared_ptr<pattern::Singleton<char>>>
-        >> psu(std::initializer_list<std::shared_ptr<pattern::Singleton<char>>>);
+        static std::shared_ptr<pattern::singleton::Closure<
+                Character,
+                std::list<std::shared_ptr<pattern::Singleton<Character>>>
+        >> psu(std::initializer_list<std::shared_ptr<pattern::Singleton<Character>>>);
 
-        std::shared_ptr<pattern::singleton::Closure<
-                char,
-                std::list<std::shared_ptr<pattern::Singleton<char>>>
-        >> psi(std::initializer_list<std::shared_ptr<pattern::Singleton<char>>>);
+        static std::shared_ptr<pattern::singleton::Closure<
+                Character,
+                std::list<std::shared_ptr<pattern::Singleton<Character>>>
+        >> psi(std::initializer_list<std::shared_ptr<pattern::Singleton<Character>>>);
 
-        std::shared_ptr<pattern::singleton::Closure<
-                char,
-                std::list<std::shared_ptr<pattern::Singleton<char>>>
-        >> psd(std::initializer_list<std::shared_ptr<pattern::Singleton<char>>>);
+        static std::shared_ptr<pattern::singleton::Closure<
+                Character,
+                std::list<std::shared_ptr<pattern::Singleton<Character>>>
+        >> psd(std::initializer_list<std::shared_ptr<pattern::Singleton<Character>>>);
 
-        std::shared_ptr<pattern::binary::Union<char>> pbu(const std::shared_ptr<Pattern<char>> &, const std::shared_ptr<Pattern<char>> &);
+        static std::shared_ptr<pattern::binary::Union<Character>> pbu(const std::shared_ptr<Pattern<Character>> &, const std::shared_ptr<Pattern<Character>> &);
 
-        std::shared_ptr<pattern::binary::Intersection<char>> pbi(const std::shared_ptr<Pattern<char>> &, const std::shared_ptr<Pattern<char>> &);
+        static std::shared_ptr<pattern::binary::Intersection<Character>> pbi(const std::shared_ptr<Pattern<Character>> &, const std::shared_ptr<Pattern<Character>> &);
 
-        std::shared_ptr<pattern::binary::Difference<char>> pbd(const std::shared_ptr<Pattern<char>> &, const std::shared_ptr<Pattern<char>> &);
+        static std::shared_ptr<pattern::binary::Difference<Character>> pbd(const std::shared_ptr<Pattern<Character>> &, const std::shared_ptr<Pattern<Character>> &);
 
-        std::shared_ptr<pattern::binary::Concatenation<char>> pbc(const std::shared_ptr<Pattern<char>> &, const std::shared_ptr<Pattern<char>> &);
+        static std::shared_ptr<pattern::binary::Concatenation<Character>> pbc(const std::shared_ptr<Pattern<Character>> &, const std::shared_ptr<Pattern<Character>> &);
 
-        std::shared_ptr<pattern::linear::Union<char>> plu(std::initializer_list<pattern::Linear<char>::Item>);
+        static std::shared_ptr<pattern::linear::Union<Character>> plu(std::initializer_list<typename pattern::Linear<Character>::Item>);
 
-        std::shared_ptr<pattern::linear::Intersection<char>> pli(std::initializer_list<pattern::Linear<char>::Item>);
+        static std::shared_ptr<pattern::linear::Intersection<Character>> pli(std::initializer_list<typename pattern::Linear<Character>::Item>);
 
-        std::shared_ptr<pattern::linear::Difference<char>> pld(std::initializer_list<pattern::Linear<char>::Item>);
+        static std::shared_ptr<pattern::linear::Difference<Character>> pld(std::initializer_list<typename pattern::Linear<Character>::Item>);
 
-        std::shared_ptr<pattern::linear::Concatenation<char>> plc(std::initializer_list<pattern::Linear<char>::Item>);
+        static std::shared_ptr<pattern::linear::Concatenation<Character>> plc(std::initializer_list<typename pattern::Linear<Character>::Item>);
 
-        std::shared_ptr<pattern::KleeneClosure<char>> pk(const std::shared_ptr<Pattern<char>> &);
-    }
+        static std::shared_ptr<pattern::KleeneClosure<Character>> pk(const std::shared_ptr<Pattern<Character>> &);
+    };
 }
