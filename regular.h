@@ -255,6 +255,7 @@ namespace regular {
         using rbs=record::BinarySome<char>;
         using rbe=record::BinaryEvery<char>;
         using rls=record::LinearSome<char>;
+        using rle=record::LinearEvery<char>;
         using rk=record::KleeneClosure<char>;
 
         std::shared_ptr<pattern::Empty<char>> pe();
