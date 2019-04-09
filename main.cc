@@ -11,8 +11,9 @@
 int main(int argc, char *argv[]) {
     using $=regular::shortcut<wchar_t>;
 
-    std::wstring s = L"顿";
-    $::pt p = $::pld({$::pss(L"阿斯顿分"), $::pss(L"斯顿分果"), $::pss(L"顿分果后")});
+    std::wstring s = L"d";
+    $::ptr<$::pt> p = $::pp();
+    p->as<$::ppt>()->place = $::pq($::pld({$::pss(L"asdf"), $::pss(L"sdfg"), $::pss(L"dfgh")}));
     auto m = p->match(s.cbegin(), s.cend());
     std::wcout << m.success << L'\n';
     std::wcout << std::wstring(s.cbegin(), m.record->end) << L'\n';
