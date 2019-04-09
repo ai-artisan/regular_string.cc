@@ -2,16 +2,12 @@
 
 #include <array>
 #include <functional>
-#include <initializer_list>
 #include <list>
 #include <memory>
 #include <string>
 #include <tuple>
 
 namespace regular {
-    template<typename T>
-    using ptr=std::shared_ptr<T>;
-
     template<typename...>
     struct Traits {
         ~Traits() = delete;
@@ -40,14 +36,14 @@ namespace regular {
         explicit Record(const decltype(end) &end) : end(end) {}
 
         template<typename Derived>
-        ptr<Derived> as() const;
+        std::shared_ptr<Derived> as() const;
     };
 
     namespace record {
         template<typename Character>
         struct BinarySome : Record<Character> {
             const bool index;
-            const ptr<Record<Character>> some;
+            const std::shared_ptr<Record<Character>> some;
 
             BinarySome(const decltype(Record<Character>::end) &end, const decltype(index) &index, const decltype(some) &some) :
                     Record<Character>(end), index(index), some(some) {}
@@ -55,7 +51,7 @@ namespace regular {
 
         template<typename Character>
         struct BinaryEvery : Record<Character> {
-            const std::array<ptr<Record<Character>>, 2> every;
+            const std::array<std::shared_ptr<Record<Character>>, 2> every;
 
             BinaryEvery(const decltype(Record<Character>::end) &end, decltype(every) &&every) :
                     Record<Character>(end), every(std::move(every)) {}
@@ -64,7 +60,7 @@ namespace regular {
         template<typename Character>
         struct LinearSome : Record<Character> {
             const typename Traits<Character>::String key;
-            const ptr<Record<Character>> some;
+            const std::shared_ptr<Record<Character>> some;
 
             LinearSome(const decltype(Record<Character>::end) &end, decltype(key) &&key, const decltype(some) &some) :
                     Record<Character>(end), key(std::move(key)), some(some) {}
@@ -72,7 +68,7 @@ namespace regular {
 
         template<typename Character>
         struct LinearEvery : Record<Character> {
-            const std::unordered_map<typename Traits<Character>::String, ptr<Record<Character>>> every;
+            const std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> every;
 
             LinearEvery(const decltype(Record<Character>::end) &end, decltype(every) &&every) :
                     Record<Character>(end), every(std::move(every)) {}
@@ -80,7 +76,7 @@ namespace regular {
 
         template<typename Character>
         struct KleeneClosure : Record<Character> {
-            const std::list<ptr<Record<Character>>> list;
+            const std::list<std::shared_ptr<Record<Character>>> list;
 
             KleeneClosure(const decltype(Record<Character>::end) &end, decltype(list) &&list) :
                     Record<Character>(end), list(std::move(list)) {}
@@ -91,7 +87,7 @@ namespace regular {
     struct Pattern : std::enable_shared_from_this<Pattern<Character>> {
         struct Matched {
             bool success;
-            ptr<Record<Character>> record;
+            std::shared_ptr<Record<Character>> record;
         };
 
         virtual typename Pattern<Character>::Matched match(
@@ -100,7 +96,7 @@ namespace regular {
         ) const = 0;
 
         template<typename Derived>
-        ptr<Derived> as() const;
+        std::shared_ptr<Derived> as() const;
     };
 
     namespace pattern {
@@ -136,7 +132,7 @@ namespace regular {
 
         template<typename Character>
         struct Binary : Pattern<Character> {
-            const std::array<ptr<Pattern<Character>>, 2> binary;
+            const std::array<std::shared_ptr<Pattern<Character>>, 2> binary;
 
             explicit Binary(decltype(binary) &&binary) : binary(std::move(binary)) {}
         };
@@ -187,7 +183,7 @@ namespace regular {
         struct Linear : Pattern<Character> {
             struct Item {
                 typename Traits<Character>::String key;
-                ptr<Pattern<Character>> value;
+                std::shared_ptr<Pattern<Character>> value;
 
                 template<typename Value>
                 /*explicit*/ Item(Value &&value) : key(0, 0), value(std::forward<Value>(value)) {}
@@ -245,7 +241,7 @@ namespace regular {
 
         template<typename Character>
         struct KleeneClosure : Pattern<Character> {
-            ptr<Pattern<Character>> item;
+            std::shared_ptr<Pattern<Character>> item;
 
             explicit KleeneClosure(const decltype(item) &item) : item(item) {}
 
@@ -257,7 +253,7 @@ namespace regular {
 
         template<typename Character>
         struct Placeholder : Pattern<Character> {
-            ptr<Pattern<Character>> place;
+            std::shared_ptr<Pattern<Character>> place;
 
             typename Pattern<Character>::Matched match(
                     const typename Traits<Character>::String::const_iterator &,
@@ -267,7 +263,7 @@ namespace regular {
 
         template<typename Character>
         struct Collapsed : Pattern<Character> {
-            const ptr<Pattern<Character>> core;
+            const std::shared_ptr<Pattern<Character>> core;
 
             explicit Collapsed(const decltype(core) &core) : core(core) {};
 
@@ -281,9 +277,6 @@ namespace regular {
     template<typename Character>
     struct shortcut {
         ~shortcut() = delete;
-
-        template<typename T>
-        using ptr=regular::ptr<T>;
 
         using rt=Record<Character>;
         using rbst=record::BinarySome<Character>;
@@ -310,56 +303,60 @@ namespace regular {
         using ppt=pattern::Placeholder<Character>;
         using pqt=pattern::Collapsed<Character>;
 
-        static ptr<pattern::Empty<Character>> pe();
+        static std::shared_ptr<pattern::Empty<Character>> pe();
 
-        static ptr<pattern::Singleton<Character>> ps(const std::function<bool(const Character &)> &);
+        static std::shared_ptr<pattern::Singleton<Character>> ps(const std::function<bool(const Character &)> &);
 
         template<typename Context>
-        static ptr<pattern::singleton::Closure<Character, Context>> ps(Context &&, const decltype(pattern::singleton::Closure<Character, Context>::depict) &);
+        static std::shared_ptr<pattern::singleton::Closure<Character, Context>> ps(Context &&, const decltype(pattern::singleton::Closure<Character, Context>::depict) &);
 
-        static ptr<pattern::Singleton<Character>> psa();
+        static std::shared_ptr<pattern::Singleton<Character>> psa();
 
-        static ptr<pattern::singleton::Closure<Character, Character>> psc(const Character &);
+        static std::shared_ptr<pattern::singleton::Closure<Character, Character>> psc(const Character &);
 
-        static ptr<pattern::singleton::Closure<Character, typename Traits<Character>::String>> pss(typename Traits<Character>::String &&);
+        static std::shared_ptr<pattern::singleton::Closure<Character, typename Traits<Character>::String>> pss(typename Traits<Character>::String &&);
 
-        static ptr<pattern::singleton::Closure<Character, std::array<Character, 2>>> psr(const Character &, const Character &);
+        static std::shared_ptr<pattern::singleton::Closure<Character, std::array<Character, 2>>> psr(const Character &, const Character &);
 
-        static ptr<pattern::singleton::Closure<
+        static std::shared_ptr<pattern::singleton::Closure<
                 Character,
-                std::list<ptr<pattern::Singleton<Character>>>
-        >> psu(std::initializer_list<ptr<pattern::Singleton<Character>>>);
+                std::list<std::shared_ptr<pattern::Singleton<Character>>>
+        >> psu(std::list<std::shared_ptr<pattern::Singleton<Character>>> &&);
 
-        static ptr<pattern::singleton::Closure<
+        static std::shared_ptr<pattern::singleton::Closure<
                 Character,
-                std::list<ptr<pattern::Singleton<Character>>>
-        >> psi(std::initializer_list<ptr<pattern::Singleton<Character>>>);
+                std::list<std::shared_ptr<pattern::Singleton<Character>>>
+        >> psi(std::list<std::shared_ptr<pattern::Singleton<Character>>> &&);
 
-        static ptr<pattern::singleton::Closure<
+        static std::shared_ptr<pattern::singleton::Closure<
                 Character,
-                std::list<ptr<pattern::Singleton<Character>>>
-        >> psd(std::initializer_list<ptr<pattern::Singleton<Character>>>);
+                std::list<std::shared_ptr<pattern::Singleton<Character>>>
+        >> psd(std::list<std::shared_ptr<pattern::Singleton<Character>>> &&);
 
-        static ptr<pattern::binary::Union<Character>> pbu(const ptr<Pattern<Character>> &, const ptr<Pattern<Character>> &);
+        static std::shared_ptr<pattern::binary::Union<Character>> pbu(const std::shared_ptr<Pattern<Character>> &, const std::shared_ptr<Pattern<Character>> &);
 
-        static ptr<pattern::binary::Intersection<Character>> pbi(const ptr<Pattern<Character>> &, const ptr<Pattern<Character>> &);
+        static std::shared_ptr<pattern::binary::Intersection<Character>> pbi(const std::shared_ptr<Pattern<Character>> &, const std::shared_ptr<Pattern<Character>> &);
 
-        static ptr<pattern::binary::Difference<Character>> pbd(const ptr<Pattern<Character>> &, const ptr<Pattern<Character>> &);
+        static std::shared_ptr<pattern::binary::Difference<Character>> pbd(const std::shared_ptr<Pattern<Character>> &, const std::shared_ptr<Pattern<Character>> &);
 
-        static ptr<pattern::binary::Concatenation<Character>> pbc(const ptr<Pattern<Character>> &, const ptr<Pattern<Character>> &);
+        static std::shared_ptr<pattern::binary::Concatenation<Character>> pbc(const std::shared_ptr<Pattern<Character>> &, const std::shared_ptr<Pattern<Character>> &);
 
-        static ptr<pattern::linear::Union<Character>> plu(std::initializer_list<typename pattern::Linear<Character>::Item>);
+        static std::shared_ptr<pt> pbc(const typename Traits<Character>::String &);
 
-        static ptr<pattern::linear::Intersection<Character>> pli(std::initializer_list<typename pattern::Linear<Character>::Item>);
+        static std::shared_ptr<pattern::linear::Union<Character>> plu(std::list<typename pattern::Linear<Character>::Item> &&);
 
-        static ptr<pattern::linear::Difference<Character>> pld(std::initializer_list<typename pattern::Linear<Character>::Item>);
+        static std::shared_ptr<pattern::linear::Intersection<Character>> pli(std::list<typename pattern::Linear<Character>::Item> &&);
 
-        static ptr<pattern::linear::Concatenation<Character>> plc(std::initializer_list<typename pattern::Linear<Character>::Item>);
+        static std::shared_ptr<pattern::linear::Difference<Character>> pld(std::list<typename pattern::Linear<Character>::Item> &&);
 
-        static ptr<pattern::KleeneClosure<Character>> pk(const ptr<Pattern<Character>> &);
+        static std::shared_ptr<pattern::linear::Concatenation<Character>> plc(std::list<typename pattern::Linear<Character>::Item> &&);
 
-        static ptr<pattern::Placeholder<Character>> pp();
+        static std::shared_ptr<pattern::linear::Concatenation<Character>> plc(const typename Traits<Character>::String &);
 
-        static ptr<pattern::Collapsed<Character>> pq(const ptr<Pattern<Character>> &);
+        static std::shared_ptr<pattern::KleeneClosure<Character>> pk(const std::shared_ptr<Pattern<Character>> &);
+
+        static std::shared_ptr<pattern::Placeholder<Character>> pp();
+
+        static std::shared_ptr<pattern::Collapsed<Character>> pq(const std::shared_ptr<Pattern<Character>> &);
     };
 }

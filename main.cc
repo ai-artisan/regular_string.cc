@@ -9,14 +9,13 @@
 
 
 int main(int argc, char *argv[]) {
-    using $=regular::shortcut<wchar_t>;
+    using $=regular::shortcut<char>;
 
-    std::wstring s = L"d";
-    $::ptr<$::pt> p = $::pp();
-    p->as<$::ppt>()->place = $::pq($::pld({$::pss(L"asdf"), $::pss(L"sdfg"), $::pss(L"dfgh")}));
+    auto p = $::plc("asdf");
+    std::string s = "asdf1234";
     auto m = p->match(s.cbegin(), s.cend());
-    std::wcout << m.success << L'\n';
-    std::wcout << std::wstring(s.cbegin(), m.record->end) << L'\n';
+    std::cout << m.success << '\n';
+    std::cout << std::string(s.cbegin(), m.record->end) << '\n';
 
 //    /**
 //     * 手动预处理
