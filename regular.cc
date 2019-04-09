@@ -19,7 +19,7 @@ namespace regular {
                 const typename Traits<Character>::String::const_iterator &begin,
                 const typename Traits<Character>::String::const_iterator &end
         ) const {
-            return {true, std::make_shared<Record<Character>>(begin)};
+            return {true, std::make_shared<Record<Character>>(begin, begin)};
         }
 
         template<typename Character>
@@ -35,7 +35,7 @@ namespace regular {
                 success = describe(*begin);
                 std::next(begin);
             }));
-            return {success, std::make_shared<Record<Character>>(end1)};
+            return {success, std::make_shared<Record<Character>>(begin, end1)};
         }
 
         namespace singleton {
@@ -64,7 +64,7 @@ namespace regular {
                         i = this->linear.cend();
                     } else i++;
                 }));
-                return {success, std::make_shared<record::LinearSome<Character>>(end1, std::move(key), record)};
+                return {success, std::make_shared<record::LinearSome<Character>>(begin, end1, std::move(key), record)};
             }
 
             template<typename Character>
@@ -92,7 +92,7 @@ namespace regular {
                         }));
                     } else success = false;
                 }
-                return {success, std::make_shared<record::LinearEvery<Character>>(end1, std::move(every))};
+                return {success, std::make_shared<record::LinearEvery<Character>>(begin, end1, std::move(every))};
             }
 
             template<typename Character>
@@ -129,7 +129,7 @@ namespace regular {
                     }
                 }
 
-                return {success, std::make_shared<record::LinearSome<Character>>(end1, std::move(key), record)};
+                return {!(success xor sign), std::make_shared<record::LinearSome<Character>>(begin, end1, std::move(key), record)};
             }
 
             template<typename Character>
@@ -149,7 +149,7 @@ namespace regular {
                         i = this->linear.cend();
                     } else i++;
                 }));
-                return {success, std::make_shared<record::LinearEvery<Character>>(end1, std::move(every))};
+                return {success, std::make_shared<record::LinearEvery<Character>>(begin, end1, std::move(every))};
             }
         }
 
@@ -159,7 +159,7 @@ namespace regular {
                 const typename Traits<Character>::String::const_iterator &end
         ) const {
             std::list<std::shared_ptr<Record<Character>>> list;
-            auto i = begin, j = end;
+            auto i = begin, end1 = end;
             while (({
                 auto[success, record] = item->match(i, end);
                 success && (record->end > i) ? ({
@@ -167,11 +167,11 @@ namespace regular {
                     i = record->end;
                     true;
                 }) : ({
-                    j = i;
+                    end1 = i;
                     false;
                 });
             }));
-            return {true, std::make_shared<record::KleeneClosure<Character>>(j, std::move(list))};
+            return {true, std::make_shared<record::KleeneClosure<Character>>(begin, end1, std::move(list))};
         }
 
         template<typename Character>
@@ -188,7 +188,7 @@ namespace regular {
                 const typename Traits<Character>::String::const_iterator &end
         ) const {
             auto matched = core->match(begin, end);
-            return {matched.success, std::make_shared<Record<Character>>(matched.record->end)};
+            return {matched.success, std::make_shared<Record<Character>>(begin, matched.record->end)};
         }
     }
 
@@ -277,18 +277,25 @@ namespace regular {
     template<typename Character>
     std::shared_ptr<pattern::singleton::Closure<
             Character,
-            std::list<std::shared_ptr<typename hub<Character>::pst>>
-    >> hub<Character>::psd(std::list<std::shared_ptr<typename hub<Character>::pst>> &&list) {
-        return std::make_shared<pattern::singleton::Closure<
-                Character,
-                std::list<std::shared_ptr<pst>>
-        >>(std::move(list), [&](const std::list<std::shared_ptr<pst>> &list, const Character &c) -> bool {
+            std::pair<
+                    std::list<std::shared_ptr<typename hub<Character>::pst>>,
+                    bool
+            >
+    >> hub<Character>::psd(std::list<std::shared_ptr<typename hub<Character>::pst>> &&list, const bool &sign) {
+        return std::make_shared<hub::psct<std::pair<
+                std::list<std::shared_ptr<hub::pst>>,
+                bool
+        >>>(std::pair{std::move(list), sign}, [&](const std::pair<
+                std::list<std::shared_ptr<hub::pst>>,
+                bool
+        > &pair, const Character &c) -> bool {
+            auto&[l, s]=pair;
             bool b = false;
-            for (auto i = list.crbegin(); i != list.crend(); ({
+            for (auto i = l.crbegin(); i != l.crend(); ({
                 b = (*i)->describe(c) && !b;
                 i++;
             }));
-            return b;
+            return !(b xor s);
         });
     }
 
@@ -303,8 +310,8 @@ namespace regular {
     }
 
     template<typename Character>
-    inline std::shared_ptr<typename hub<Character>::pldt> hub<Character>::pld(std::list<typename plt::Item> &&list) {
-        return std::make_shared<pldt>(std::move(list));
+    inline std::shared_ptr<typename hub<Character>::pldt> hub<Character>::pld(std::list<typename plt::Item> &&list, const bool &sign) {
+        return std::make_shared<pldt>(std::move(list), sign);
     }
 
     template<typename Character>

@@ -31,9 +31,14 @@ namespace regular {
     struct Record : std::enable_shared_from_this<Record<Character>> {
         virtual ~Record() = default;
 
-        const typename Traits<Character>::String::const_iterator end;
+        const typename Traits<Character>::String::const_iterator begin, end;
 
-        explicit Record(const decltype(end) &end) : end(end) {}
+        explicit Record(const decltype(begin) &begin, const decltype(end) &end) :
+                begin(begin), end(end) {}
+
+        inline typename Traits<Character>::String string() const {
+            return typename Traits<Character>::String(begin, end);
+        }
 
         template<typename Derived>
         std::shared_ptr<Derived> as() const;
@@ -45,24 +50,24 @@ namespace regular {
             const typename Traits<Character>::String key;
             const std::shared_ptr<Record<Character>> some;
 
-            LinearSome(const decltype(Record<Character>::end) &end, decltype(key) &&key, const decltype(some) &some) :
-                    Record<Character>(end), key(std::move(key)), some(some) {}
+            LinearSome(const decltype(Record<Character>::begin) &begin, const decltype(Record<Character>::end) &end, decltype(key) &&key, const decltype(some) &some) :
+                    Record<Character>(begin, end), key(std::move(key)), some(some) {}
         };
 
         template<typename Character>
         struct LinearEvery : Record<Character> {
             const std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> every;
 
-            LinearEvery(const decltype(Record<Character>::end) &end, decltype(every) &&every) :
-                    Record<Character>(end), every(std::move(every)) {}
+            LinearEvery(const decltype(Record<Character>::begin) &begin, const decltype(Record<Character>::end) &end, decltype(every) &&every) :
+                    Record<Character>(begin, end), every(std::move(every)) {}
         };
 
         template<typename Character>
         struct KleeneClosure : Record<Character> {
             const std::list<std::shared_ptr<Record<Character>>> list;
 
-            KleeneClosure(const decltype(Record<Character>::end) &end, decltype(list) &&list) :
-                    Record<Character>(end), list(std::move(list)) {}
+            KleeneClosure(const decltype(Record<Character>::begin) &begin, const decltype(Record<Character>::end) &end, decltype(list) &&list) :
+                    Record<Character>(begin, end), list(std::move(list)) {}
         };
     }
 
@@ -72,6 +77,10 @@ namespace regular {
             bool success;
             std::shared_ptr<Record<Character>> record;
         };
+
+        inline typename Pattern<Character>::Matched adapt(const typename Traits<Character>::String &s) const {
+            return match(s.cbegin(), s.cend());
+        }
 
         virtual typename Pattern<Character>::Matched match(
                 const typename Traits<Character>::String::const_iterator &,
@@ -154,7 +163,10 @@ namespace regular {
 
             template<typename Character>
             struct Difference : Linear<Character> {
-                explicit Difference(decltype(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
+                const bool sign;
+
+                explicit Difference(decltype(Linear<Character>::linear) &&linear, const decltype(sign) &sign = true) :
+                        Linear<Character>(std::move(linear)), sign(sign) {}
 
                 typename Pattern<Character>::Matched match(
                         const typename Traits<Character>::String::const_iterator &,
@@ -250,13 +262,16 @@ namespace regular {
 
         static std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psi(std::list<std::shared_ptr<pst>> &&);
 
-        static std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psd(std::list<std::shared_ptr<pst>> &&);
+        static std::shared_ptr<psct<std::pair<
+                std::list<std::shared_ptr<pst>>,
+                bool
+        >>> psd(std::list<std::shared_ptr<pst>> &&, const bool & = true);
 
         static std::shared_ptr<plut> plu(std::list<typename plt::Item> &&);
 
         static std::shared_ptr<plit> pli(std::list<typename plt::Item> &&);
 
-        static std::shared_ptr<pldt> pld(std::list<typename plt::Item> &&);
+        static std::shared_ptr<pldt> pld(std::list<typename plt::Item> &&, const bool & = true);
 
         static std::shared_ptr<plct> plc(std::list<typename plt::Item> &&);
 
@@ -309,7 +324,10 @@ namespace regular {
 
             inline std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psi(std::list<std::shared_ptr<pst>> &&l) { return hub<char>::psi(std::move(l)); }
 
-            inline std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psd(std::list<std::shared_ptr<pst>> &&l) { return hub<char>::psd(std::move(l)); }
+            inline std::shared_ptr<psct<std::pair<
+                    std::list<std::shared_ptr<pst>>,
+                    bool
+            >>> psd(std::list<std::shared_ptr<pst>> &&l, const bool &s = true) { return hub<char>::psd(std::move(l), s); }
 
             inline std::shared_ptr<plut> plu(std::list<typename plt::Item> &&l) { return hub<char>::plu(std::move(l)); }
 
@@ -366,7 +384,10 @@ namespace regular {
 
             inline std::shared_ptr<wpsct<std::list<std::shared_ptr<wpst>>>> wpsi(std::list<std::shared_ptr<wpst>> &&l) { return hub<wchar_t>::psi(std::move(l)); }
 
-            inline std::shared_ptr<wpsct<std::list<std::shared_ptr<wpst>>>> wpsd(std::list<std::shared_ptr<wpst>> &&l) { return hub<wchar_t>::psd(std::move(l)); }
+            inline std::shared_ptr<wpsct<std::pair<
+                    std::list<std::shared_ptr<wpst>>,
+                    bool
+            >>> wpsd(std::list<std::shared_ptr<wpst>> &&l, const bool &s = true) { return hub<wchar_t>::psd(std::move(l), s); }
 
             inline std::shared_ptr<wplut> wplu(std::list<typename wplt::Item> &&l) { return hub<wchar_t>::plu(std::move(l)); }
 

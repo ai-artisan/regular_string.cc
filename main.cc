@@ -10,6 +10,15 @@
 
 
 int main(int argc, char *argv[]) {
+//    {
+//        using namespace regular::shortcut::narrow;
+//        auto p = psd({pss("1234"), pss("2345"), pss("3456")});
+//        auto m = p->adapt("3");
+//        std::cout << m.success << '\n';
+//        std::cout << m.record->string() << '\n';
+//    }
+
+
     using namespace regular::shortcut::wide;
 
     /**
@@ -47,21 +56,21 @@ int main(int argc, char *argv[]) {
                                     wplc(L"{{"),
                                     {L"MAIN", wplc(
                                             {
-                                                    {L"CATEGORY", wpq(wpk(wpsd({wpsa(), wpsc(L':')})))},
+                                                    {L"CATEGORY", wpq(wpk(wpsd({wpsc(L':')}, false)))},
                                                     wpsc(L':'),
                                                     {L"CONTENT", wpk(wplu(
                                                             {
                                                                     {L"HTTP", wpq(wplc(
                                                                             {
                                                                                     wplc(L"http://"),
-                                                                                    wpk(wpsd({wpsa(), wpsc(L'}')}))
+                                                                                    wpk(wpsd({wpsc(L'}')}, false))
                                                                             }
                                                                     ))},
                                                                     wpq(p_whitespace),
                                                                     {L"HTTP", wpq(p_http)},
                                                                     {L"NUMBER", wpq(p_number)},
                                                                     {L"WORD", wpq(p_word)},
-                                                                    {L"ATOM", wpsd({wpsa(), wpsc(L'}')})}
+                                                                    {L"ATOM", wpsd({wpsc(L'}')}, false)}
                                                             }
                                                     ))}
                                             }
@@ -76,49 +85,49 @@ int main(int argc, char *argv[]) {
                     {L"ATOM", wpsa()}
             }
     ));
-//    auto m = r->match(source.cbegin(), source.cend());
+    auto m = p->match(source.cbegin(), source.cend());
 //
     /**
      * 转换
      */
     std::wstringstream target;
-//    const auto NUMBER = L"N", WORD = L"W", HTTP = L"H";
-//    auto list = m->as<RKM>()->list;
-//    for (auto i = list.cbegin(); i != list.cend(); ({
-//        auto m = (*i)->as<RUM>();
-//        auto key = m->key;
-//        auto value = m->value;
-//        if (key == L"LABEL") {
-//            auto m = value->as<RCM>()->map.at(L"MAIN")->as<RCM>();
-//            auto category = m->map.at(L"CATEGORY")->json().asString();
-//            auto list = m->map.at(L"CONTENT")->as<RKM>()->list;
-//            std::list<std::wstring> cache;
-//            for (auto i = list.cbegin(); i != list.cend(); ({
-//                auto m = (*i)->as<RUM>();
-//                auto key = m->key;
-//                if (key == L"HTTP") cache.emplace_back(HTTP);
-//                else if (key == L"NUMBER") cache.emplace_back(NUMBER);
-//                else if (key == L"WORD") cache.emplace_back(WORD);
-//                else if (key == L"ATOM") cache.emplace_back(m->value->json().asString());
-//                i++;
-//            }));
-//            if (!cache.empty()) {
-//                target << cache.front() << L"\tB-" << category << L'\n';
-//                for (auto i = std::next(cache.cbegin()); i != cache.cend(); ({
-//                    target << *i << L"\tI-" << category << L'\n';
-//                    i++;
-//                }));
-//            }
-//        } else if (key == L"HTTP") target << HTTP << L"\tO\n";
-//        else if (key == L"NUMBER") target << NUMBER << L"\tO\n";
-//        else if (key == L"WORD") target << WORD << L"\tO\n";
-//        else if (key == L"ATOM") {
-//            auto s = value->json().asString();
-//            target << s << L"\tO\n";
-//            if (RSI(L"!?。！？")->match(s.cbegin(), s.cend())->success) target << L'\n';
-//        }
-//        i++;
-//    }));
+    const auto NUMBER = L"N", WORD = L"W", HTTP = L"H";
+    auto list = m.record->as<wrkt>()->list;
+    for (auto i = list.cbegin(); i != list.cend(); ({
+        auto m = (*i)->as<wrlst>();
+        auto key = m->key;
+        auto value = m->some;
+        if (key == L"LABEL") {
+            auto m = value->as<wrlet>()->every.at(L"MAIN")->as<wrlet>();
+            auto category = m->every.at(L"CATEGORY")->string();
+            auto list = m->every.at(L"CONTENT")->as<wrkt>()->list;
+            std::list<std::wstring> cache;
+            for (auto i = list.cbegin(); i != list.cend(); ({
+                auto m = (*i)->as<wrlst>();
+                auto key = m->key;
+                if (key == L"HTTP") cache.emplace_back(HTTP);
+                else if (key == L"NUMBER") cache.emplace_back(NUMBER);
+                else if (key == L"WORD") cache.emplace_back(WORD);
+                else if (key == L"ATOM") cache.emplace_back(m->some->string());
+                i++;
+            }));
+            if (!cache.empty()) {
+                target << cache.front() << L"\tB-" << category << L'\n';
+                for (auto i = std::next(cache.cbegin()); i != cache.cend(); ({
+                    target << *i << L"\tI-" << category << L'\n';
+                    i++;
+                }));
+            }
+        } else if (key == L"HTTP") target << HTTP << L"\tO\n";
+        else if (key == L"NUMBER") target << NUMBER << L"\tO\n";
+        else if (key == L"WORD") target << WORD << L"\tO\n";
+        else if (key == L"ATOM") {
+            auto s = value->string();
+            target << s << L"\tO\n";
+            if (wpss(L"!?。！？")->adapt(s).success) target << L'\n';
+        }
+        i++;
+    }));
 //
     /**
      * 写入目标数据
