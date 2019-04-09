@@ -215,6 +215,26 @@ namespace regular {
                         const typename Traits<Character>::String::const_iterator &
                 ) const final;
             };
+
+            template<typename Character>
+            struct Difference : Linear<Character> {
+                explicit Difference(decltype(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
+
+                typename Pattern<Character>::Matched match(
+                        const typename Traits<Character>::String::const_iterator &,
+                        const typename Traits<Character>::String::const_iterator &
+                ) const final;
+            };
+
+            template<typename Character>
+            struct Concatenation : Linear<Character> {
+                explicit Concatenation(decltype(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
+
+                typename Pattern<Character>::Matched match(
+                        const typename Traits<Character>::String::const_iterator &,
+                        const typename Traits<Character>::String::const_iterator &
+                ) const final;
+            };
         }
 
         template<typename Character>
@@ -267,15 +287,21 @@ namespace regular {
                 std::list<std::shared_ptr<pattern::Singleton<char>>>
         >> psd(std::initializer_list<std::shared_ptr<pattern::Singleton<char>>>);
 
-        std::shared_ptr<pattern::binary::Union<char>> pu(const std::shared_ptr<Pattern<char>> &, const std::shared_ptr<Pattern<char>> &);
+        std::shared_ptr<pattern::binary::Union<char>> pbu(const std::shared_ptr<Pattern<char>> &, const std::shared_ptr<Pattern<char>> &);
 
-        std::shared_ptr<pattern::binary::Intersection<char>> pi(const std::shared_ptr<Pattern<char>> &, const std::shared_ptr<Pattern<char>> &);
+        std::shared_ptr<pattern::binary::Intersection<char>> pbi(const std::shared_ptr<Pattern<char>> &, const std::shared_ptr<Pattern<char>> &);
 
-        std::shared_ptr<pattern::binary::Difference<char>> pd(const std::shared_ptr<Pattern<char>> &, const std::shared_ptr<Pattern<char>> &);
+        std::shared_ptr<pattern::binary::Difference<char>> pbd(const std::shared_ptr<Pattern<char>> &, const std::shared_ptr<Pattern<char>> &);
 
-        std::shared_ptr<pattern::binary::Concatenation<char>> pc(const std::shared_ptr<Pattern<char>> &, const std::shared_ptr<Pattern<char>> &);
+        std::shared_ptr<pattern::binary::Concatenation<char>> pbc(const std::shared_ptr<Pattern<char>> &, const std::shared_ptr<Pattern<char>> &);
 
-        std::shared_ptr<pattern::linear::Union<char>> pu(std::initializer_list<pattern::Linear<char>::Item>);
+        std::shared_ptr<pattern::linear::Union<char>> plu(std::initializer_list<pattern::Linear<char>::Item>);
+
+        std::shared_ptr<pattern::linear::Intersection<char>> pli(std::initializer_list<pattern::Linear<char>::Item>);
+
+        std::shared_ptr<pattern::linear::Difference<char>> pld(std::initializer_list<pattern::Linear<char>::Item>);
+
+        std::shared_ptr<pattern::linear::Concatenation<char>> plc(std::initializer_list<pattern::Linear<char>::Item>);
 
         std::shared_ptr<pattern::KleeneClosure<char>> pk(const std::shared_ptr<Pattern<char>> &);
     }

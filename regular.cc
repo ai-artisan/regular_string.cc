@@ -51,14 +51,15 @@ namespace regular {
                     const typename Traits<Character>::String::const_iterator &begin,
                     const typename Traits<Character>::String::const_iterator &end
             ) const {
+                bool success = true;
                 std::array<std::shared_ptr<Record<Character>>, 2> every = {nullptr, nullptr};
                 auto matched = this->binary[0]->match(begin, end);
                 every[0] = matched.record;
                 if (matched.success) {
                     matched = this->binary[1]->match(begin, every[0]->end);
                     every[1] = matched.record;
-                    matched.success &= (matched.record->end == every[0]->end);
-                }
+                    if (matched.record->end != every[0]->end) success = false;
+                } else success = false;
                 return {matched.success, std::make_shared<record::BinaryEvery<Character>>(every[1]->end, std::move(every))};
             }
 
@@ -72,7 +73,7 @@ namespace regular {
                 if (matched.success) {
                     index = true;
                     auto matched1 = this->binary[1]->match(begin, matched.record->end);
-                    if (matched1.success) matched = {false, matched1.record};
+                    if (matched1.success && matched1.record->end == matched.record->end) matched = {false, matched1.record};
                 }
                 return {matched.success, std::make_shared<record::BinarySome<Character>>(matched.record->end, index, matched.record)};
             }
@@ -99,16 +100,21 @@ namespace regular {
                     const typename Traits<Character>::String::const_iterator &begin,
                     const typename Traits<Character>::String::const_iterator &end
             ) const {
-                typename Traits<Character>::String key;
-                typename Pattern<Character>::Matched matched = {false, nullptr};
+                bool success = false;
+                auto end1 = begin;
+                typename Traits<Character>::String key = "";
+                std::shared_ptr<Record<Character>> record = nullptr;
                 for (auto i = this->linear.cbegin(); i != this->linear.cend(); ({
-                    matched = i->value->match(begin, end);
+                    auto matched = i->value->match(begin, end);
                     if (matched.success) {
+                        success = true;
+                        end1 = matched.record->end;
                         key = i->key;
+                        record = matched.record;
                         i = this->linear.cend();
                     } else i++;
                 }));
-                return {matched.success, std::make_shared<record::LinearSome<Character>>(matched.record->end, std::move(key), matched.record)};
+                return {success, std::make_shared<record::LinearSome<Character>>(end1, std::move(key), record)};
             }
 
             template<typename Character>
@@ -116,14 +122,84 @@ namespace regular {
                     const typename Traits<Character>::String::const_iterator &begin,
                     const typename Traits<Character>::String::const_iterator &end
             ) const {
+                bool success = true;
+                auto end1 = begin;
                 std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> every;
+                if (!this->linear.empty()) {
+                    auto matched = this->linear.front().value->match(begin, end);
+                    every[this->linear.front().key] = matched.record;
+                    if (matched.success) {
+                        end1 = matched.record->end;
+                        for (auto i = std::next(this->linear.cbegin()); i != this->linear.cend(); ({
+                            auto matched1 = i->value->match(begin, end1);
+                            every[i->key] = matched1.record;
+                            if (matched1.success && matched1.record->end == end1) i++;
+                            else {
+                                success = false;
+                                end1 = matched1.record->end;
+                                i = this->linear.cend();
+                            }
+                        }));
+                    } else success = false;
+                }
+                return {success, std::make_shared<record::LinearEvery<Character>>(end1, std::move(every))};
+            }
 
-                auto end1 = end;
+            template<typename Character>
+            typename Pattern<Character>::Matched Difference<Character>::match(
+                    const typename Traits<Character>::String::const_iterator &begin,
+                    const typename Traits<Character>::String::const_iterator &end
+            ) const {
+                bool success = false;
+                auto end1 = begin;
+                typename Traits<Character>::String key = "";
+                std::shared_ptr<Record<Character>> record = nullptr;
+
+                if (!this->linear.empty()) {
+                    auto matched = this->linear.front().value->match(begin, end);
+                    end1 = matched.record->end;
+                    if (matched.success) {
+                        for (auto i = this->linear.crbegin(); i != std::prev(this->linear.crend()); ({
+                            auto matched1 = i->value->match(begin, end1);
+                            success = matched1.success && matched1.record->end == end1 && !success;
+                            if (success) {
+                                key = i->key;
+                                record = matched1.record;
+                            }
+                            i++;
+                        }));
+                        success ^= true;
+                        if (success) {
+                            key = this->linear.front().key;
+                            record = matched.record;
+                        }
+                    } else {
+                        key = this->linear.front().key;
+                        record = matched.record;
+                    }
+                }
+
+                return {success, std::make_shared<record::LinearSome<Character>>(end1, std::move(key), record)};
+            }
+
+            template<typename Character>
+            typename Pattern<Character>::Matched Concatenation<Character>::match(
+                    const typename Traits<Character>::String::const_iterator &begin,
+                    const typename Traits<Character>::String::const_iterator &end
+            ) const {
+                bool success = true;
+                auto end1 = begin;
+                std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> every;
                 for (auto i = this->linear.cbegin(); i != this->linear.cend(); ({
-                    auto matched = i->value->match(begin, end1);
-                    if (matched.success && matched.record->end == end1) i++;
-                    else;//...
+                    auto matched = i->value->match(end1, end);
+                    end1 = matched.record->end;
+                    every[i->key] = matched.record;
+                    if (!matched.success) {
+                        success = false;
+                        i = this->linear.cend();
+                    } else i++;
                 }));
+                return {success, std::make_shared<record::LinearEvery<Character>>(end1, std::move(every))};
             }
         }
 
@@ -240,24 +316,36 @@ namespace regular {
             });
         }
 
-        inline std::shared_ptr<pattern::binary::Union<char>> pu(const std::shared_ptr<regular::Pattern<char>> &p0, const std::shared_ptr<regular::Pattern<char>> &p1) {
+        inline std::shared_ptr<pattern::binary::Union<char>> pbu(const std::shared_ptr<regular::Pattern<char>> &p0, const std::shared_ptr<regular::Pattern<char>> &p1) {
             return std::make_shared<pattern::binary::Union<char>>(std::array{p0, p1});
         }
 
-        inline std::shared_ptr<pattern::binary::Intersection<char>> pi(const std::shared_ptr<regular::Pattern<char>> &p0, const std::shared_ptr<regular::Pattern<char>> &p1) {
+        inline std::shared_ptr<pattern::binary::Intersection<char>> pbi(const std::shared_ptr<regular::Pattern<char>> &p0, const std::shared_ptr<regular::Pattern<char>> &p1) {
             return std::make_shared<pattern::binary::Intersection<char>>(std::array{p0, p1});
         }
 
-        inline std::shared_ptr<pattern::binary::Difference<char>> pd(const std::shared_ptr<regular::Pattern<char>> &p0, const std::shared_ptr<regular::Pattern<char>> &p1) {
+        inline std::shared_ptr<pattern::binary::Difference<char>> pbd(const std::shared_ptr<regular::Pattern<char>> &p0, const std::shared_ptr<regular::Pattern<char>> &p1) {
             return std::make_shared<pattern::binary::Difference<char>>(std::array{p0, p1});
         }
 
-        inline std::shared_ptr<pattern::binary::Concatenation<char>> pc(const std::shared_ptr<regular::Pattern<char>> &p0, const std::shared_ptr<regular::Pattern<char>> &p1) {
+        inline std::shared_ptr<pattern::binary::Concatenation<char>> pbc(const std::shared_ptr<regular::Pattern<char>> &p0, const std::shared_ptr<regular::Pattern<char>> &p1) {
             return std::make_shared<pattern::binary::Concatenation<char>>(std::array{p0, p1});
         }
 
-        std::shared_ptr<pattern::linear::Union<char>> pu(std::initializer_list<pattern::Linear<char>::Item> list) {
+        inline std::shared_ptr<pattern::linear::Union<char>> plu(std::initializer_list<pattern::Linear<char>::Item> list) {
             return std::make_shared<pattern::linear::Union<char>>(list);
+        }
+
+        inline std::shared_ptr<pattern::linear::Intersection<char>> pli(std::initializer_list<pattern::Linear<char>::Item> list) {
+            return std::make_shared<pattern::linear::Intersection<char>>(list);
+        }
+
+        inline std::shared_ptr<pattern::linear::Difference<char>> pld(std::initializer_list<pattern::Linear<char>::Item> list) {
+            return std::make_shared<pattern::linear::Difference<char>>(list);
+        }
+
+        inline std::shared_ptr<pattern::linear::Concatenation<char>> plc(std::initializer_list<pattern::Linear<char>::Item> list) {
+            return std::make_shared<pattern::linear::Concatenation<char>>(list);
         }
 
         inline std::shared_ptr<pattern::KleeneClosure<char>> pk(const std::shared_ptr<regular::Pattern<char>> &item) {

@@ -12,24 +12,13 @@ int main(int argc, char *argv[]) {
     using namespace regular::shortcut;
 
     std::string s;
-
     std::shared_ptr<regular::Pattern<char>> p;
 
-    s = "1sdf1234QWER==--==";
-    p = psd({psr('0', '9'), psr('0', '4'), psr('0', '2')});
-//    p = psd({psu({psr('0', '9'), psr('a', 'z')}), pss("asfd1234"), psu({psc('a'), psc('1')})});
-//    p = pk(pu({{"digit",  psr('0', '9')},
-//               {"letter", psr('a', 'z')},
-//               {"LETTER", psr('A', 'Z')}}));
+    p = pld({pss("1234"), pss("2345"), pss("3456")});
+    s = "";
     auto m = p->match(s.cbegin(), s.cend());
-    std::cout << m.success << "\n";
-    std::cout << std::string(s.cbegin(), m.record->end) << "\n";
-
-//    auto l = m.record->as<rk>()->list;
-//    for (auto i = l.cbegin(); i != l.cend(); ({
-//        std::cout << (*i)->as<rls>()->key << '\n';
-//        i++;
-//    }));
+    std::cout << m.success << '\n';
+    std::cout << std::string(s.cbegin(), m.record->end) << '\n';
 
 //    /**
 //     * 手动预处理
