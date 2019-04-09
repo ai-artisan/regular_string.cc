@@ -3,48 +3,38 @@
 #include <locale>
 #include <codecvt>
 #include <string>
+#include <sstream>
 
 #include "regular.h"
 #include "regular.cc"
 
 
 int main(int argc, char *argv[]) {
-    using $=regular::hub<char>;
+    using namespace regular::shortcut::wide;
 
-    auto p = $::ps<char>('a', [](const char &, const char &) -> bool {
-        return false;
-    });
-    std::string s = "asdf1234";
-    auto m = p->match(s.cbegin(), s.cend());
-    std::cout << m.success << '\n';
-    std::cout << std::string(s.cbegin(), m.record->end) << '\n';
+    /**
+     * 手动预处理
+     *      补齐标签花括号
+     *      去除“\n\n”
+     */
+    // 手动完成
 
-//    /**
-//     * 手动预处理
-//     *      补齐标签花括号
-//     *      去除“\n\n”
-//     */
-//    // 手动完成
-//
-//    /**
-//     * 读取原始数据
-//     */
-//    std::ifstream ifs(argv[1]);
-//    std::stringstream ss;
-//    ss << ifs.rdbuf();
-//    ifs.close();
-//    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> convert;
-//    auto source = convert.from_bytes(ss.str());
-//
-//    /**
-//     * 提取
-//     */
-//    auto r_whitespace = RSI(L"\f\n\r\t\v ");
-//    auto r_whitespaces = RC()->item(r_whitespace)->item(RK(r_whitespace));
-//    auto r_digit = RU()
-//            ->item(RSR(L'0', L'9'))
-//            ->item(RSR(L'A', L'F'))
-//            ->item(RSI(L".e"));
+    /**
+     * 读取原始数据
+     */
+    std::ifstream ifs(argv[1]);
+    std::stringstream ss;
+    ss << ifs.rdbuf();
+    ifs.close();
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> convert;
+    auto source = convert.from_bytes(ss.str());
+
+    /**
+     * 提取
+     */
+    auto r_whitespace = wplc(L"\f\n\r\t\v ");
+    auto r_whitespaces = wplc({r_whitespace, wpk(r_whitespace)});
+    auto r_digit = wpsu({wpsr(L'0', L'9'), wpsr(L'A', L'F'), wpss(L".e")});
 //    auto r_number = RC()
 //            ->item(RU()
 //                           ->item(RSI(L"+-"))
@@ -93,10 +83,10 @@ int main(int argc, char *argv[]) {
 //    );
 //    auto m = r->match(source.cbegin(), source.cend());
 //
-//    /**
-//     * 转换
-//     */
-//    std::wstringstream target;
+    /**
+     * 转换
+     */
+    std::wstringstream target;
 //    const auto NUMBER = L"N", WORD = L"W", HTTP = L"H";
 //    auto list = m->as<RKM>()->list;
 //    for (auto i = list.cbegin(); i != list.cend(); ({
@@ -135,11 +125,11 @@ int main(int argc, char *argv[]) {
 //        i++;
 //    }));
 //
-//    /**
-//     * 写入目标数据
-//     */
-//    std::ofstream ofs(argv[2]);
-//    ofs << convert.to_bytes(target.str());
-//    ofs.close();
+    /**
+     * 写入目标数据
+     */
+    std::ofstream ofs(argv[2]);
+    ofs << convert.to_bytes(target.str());
+    ofs.close();
     return 0;
 }

@@ -115,7 +115,7 @@ namespace regular {
             ) const {
                 bool success = false;
                 auto end1 = begin;
-                typename Traits<Character>::String key = "";
+                typename Traits<Character>::String key(0, 0);
                 std::shared_ptr<Record<Character>> record = nullptr;
                 for (auto i = this->linear.cbegin(); i != this->linear.cend(); ({
                     auto matched = i->value->match(begin, end);
@@ -269,7 +269,7 @@ namespace regular {
     template<typename Character>
     template<typename Context>
     inline std::shared_ptr<pattern::singleton::Closure<Character, Context>> hub<Character>::ps(Context &&context, const std::function<bool(const Context &, const Character &)> &depict) {
-        return std::make_shared<pattern::singleton::Closure<Character, Context>>(std::forward<Context>(context), depict);
+        return std::make_shared<hub<Character>::psct<Context>>(std::forward<Context>(context), depict);
     }
 
     template<typename Character>
@@ -281,14 +281,14 @@ namespace regular {
 
     template<typename Character>
     inline std::shared_ptr<pattern::singleton::Closure<Character, Character>> hub<Character>::psc(const Character &c0) {
-        return std::make_shared<pattern::singleton::Closure<Character, Character>>(Character(c0), [](const Character &c0, const Character &c) -> bool {
+        return std::make_shared<hub<Character>::psct<Character>>(Character(c0), [](const Character &c0, const Character &c) -> bool {
             return c == c0;
         });
     }
 
     template<typename Character>
     std::shared_ptr<pattern::singleton::Closure<Character, typename Traits<Character>::String>> hub<Character>::pss(typename Traits<Character>::String &&s) {
-        return std::make_shared<pattern::singleton::Closure<Character, typename Traits<Character>::String>>(std::move(s), [&](const typename Traits<Character>::String &s, const Character &c) -> bool {
+        return std::make_shared<hub<Character>::psct<typename Traits<Character>::String>>(std::move(s), [&](const typename Traits<Character>::String &s, const Character &c) -> bool {
             for (auto i = s.cbegin(); i != s.cend(); ({
                 if (c == *i) return true;
                 i++;
@@ -299,7 +299,7 @@ namespace regular {
 
     template<typename Character>
     inline std::shared_ptr<pattern::singleton::Closure<Character, std::array<Character, 2>>> hub<Character>::psr(const Character &inf, const Character &sup) {
-        return std::make_shared<pattern::singleton::Closure<Character, std::array<Character, 2>>>(std::array{inf, sup}, [&](const std::array<Character, 2> &interval, const Character &c) -> bool {
+        return std::make_shared<hub<Character>::psct<std::array<Character, 2>>>(std::array{inf, sup}, [&](const std::array<Character, 2> &interval, const Character &c) -> bool {
             return interval[0] <= c && c <= interval[1];
         });
     }

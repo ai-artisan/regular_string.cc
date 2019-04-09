@@ -323,7 +323,7 @@ namespace regular {
 
         static std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psi(std::list<std::shared_ptr<pst>> &&);
 
-        static std::shared_ptr<psct< std::list<std::shared_ptr<pst>>>> psd(std::list<std::shared_ptr<pst>> &&);
+        static std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psd(std::list<std::shared_ptr<pst>> &&);
 
         static std::shared_ptr<pbut> pbu(const std::shared_ptr<pt> &, const std::shared_ptr<pt> &);
 
@@ -351,4 +351,155 @@ namespace regular {
 
         static std::shared_ptr<pqt> pq(const std::shared_ptr<pt> &);
     };
+
+    namespace shortcut {
+        namespace narrow {
+            using rt=hub<char>::rt;
+            using rbst=hub<char>::rbst;
+            using rbet=hub<char>::rbet;
+            using rlst=hub<char>::rlst;
+            using rlet=hub<char>::rlet;
+            using rkt=hub<char>::rkt;
+
+            using pt=hub<char>::pt;
+            using pet=hub<char>::pet;
+            using pst=hub<char>::pst;
+            template<typename Context>
+            using psct=hub<char>::psct<Context>;
+            using pbt=hub<char>::pbt;
+            using pbut=hub<char>::pbut;
+            using pbit=hub<char>::pbit;
+            using pbdt=hub<char>::pbdt;
+            using pbct=hub<char>::pbct;
+            using plt=hub<char>::plt;
+            using plut=hub<char>::plut;
+            using plit=hub<char>::plit;
+            using pldt=hub<char>::pldt;
+            using plct=hub<char>::plct;
+            using pkt=hub<char>::pkt;
+            using ppt=hub<char>::ppt;
+            using pqt=hub<char>::pqt;
+
+            inline std::shared_ptr<pet> pe() { return hub<char>::pe(); }
+
+            inline std::shared_ptr<pst> ps(const std::function<bool(const char &)> &f) { return hub<char>::ps(f); }
+
+            template<typename Context>
+            inline std::shared_ptr<psct<Context>> ps(Context &&c, const std::function<bool(const Context &, const char &)> &f) { return hub<char>::ps(c, f); }
+
+            inline std::shared_ptr<pst> psa() { return hub<char>::psa(); }
+
+            inline std::shared_ptr<psct<char>> psc(const char &c) { return hub<char>::psc(c); }
+
+            inline std::shared_ptr<psct<typename Traits<char>::String>> pss(typename Traits<char>::String &&s) { return hub<char>::pss(std::move(s)); }
+
+            inline std::shared_ptr<psct<std::array<char, 2>>> psr(const char &c, const char &d) { return hub<char>::psr(c, d); }
+
+            inline std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psu(std::list<std::shared_ptr<pst>> &&l) { return hub<char>::psu(std::move(l)); }
+
+            inline std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psi(std::list<std::shared_ptr<pst>> &&l) { return hub<char>::psi(std::move(l)); }
+
+            inline std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psd(std::list<std::shared_ptr<pst>> &&l) { return hub<char>::psd(std::move(l)); }
+
+            inline std::shared_ptr<pbut> pbu(const std::shared_ptr<pt> &p, const std::shared_ptr<pt> &q) { return hub<char>::pbu(p, q); }
+
+            inline std::shared_ptr<pbit> pbi(const std::shared_ptr<pt> &p, const std::shared_ptr<pt> &q) { return hub<char>::pbi(p, q); }
+
+            inline std::shared_ptr<pbdt> pbd(const std::shared_ptr<pt> &p, const std::shared_ptr<pt> &q) { return hub<char>::pbd(p, q); }
+
+            inline std::shared_ptr<pbct> pbc(const std::shared_ptr<pt> &p, const std::shared_ptr<pt> &q) { return hub<char>::pbc(p, q); }
+
+            inline std::shared_ptr<pt> pbc(const typename Traits<char>::String &s) { return hub<char>::pbc(s); }
+
+            inline std::shared_ptr<plut> plu(std::list<typename plt::Item> &&l) { return hub<char>::plu(std::move(l)); }
+
+            inline std::shared_ptr<plit> pli(std::list<typename plt::Item> &&l) { return hub<char>::pli(std::move(l)); }
+
+            inline std::shared_ptr<pldt> pld(std::list<typename plt::Item> &&l) { return hub<char>::pld(std::move(l)); }
+
+            inline std::shared_ptr<plct> plc(std::list<typename plt::Item> &&l) { return hub<char>::plc(std::move(l)); }
+
+            inline std::shared_ptr<plct> plc(const typename Traits<char>::String &s) { return hub<char>::plc(s); }
+
+            inline std::shared_ptr<pkt> pk(const std::shared_ptr<pt> &p) { return hub<char>::pk(p); }
+
+            inline std::shared_ptr<ppt> pp() { return hub<char>::pp(); }
+
+            inline std::shared_ptr<pqt> pq(const std::shared_ptr<pt> &p) { return hub<char>::pq(p); }
+        }
+        namespace wide {
+            using wrt=hub<wchar_t>::rt;
+            using wrbst=hub<wchar_t>::rbst;
+            using wrbet=hub<wchar_t>::rbet;
+            using wrlst=hub<wchar_t>::rlst;
+            using wrlet=hub<wchar_t>::rlet;
+            using wrkt=hub<wchar_t>::rkt;
+
+            using wpt=hub<wchar_t>::pt;
+            using wpet=hub<wchar_t>::pet;
+            using wpst=hub<wchar_t>::pst;
+            template<typename Context>
+            using wpsct=hub<wchar_t>::psct<Context>;
+            using wpbt=hub<wchar_t>::pbt;
+            using wpbut=hub<wchar_t>::pbut;
+            using wpbit=hub<wchar_t>::pbit;
+            using wpbdt=hub<wchar_t>::pbdt;
+            using wpbct=hub<wchar_t>::pbct;
+            using wplt=hub<wchar_t>::plt;
+            using wplut=hub<wchar_t>::plut;
+            using wplit=hub<wchar_t>::plit;
+            using wpldt=hub<wchar_t>::pldt;
+            using wplct=hub<wchar_t>::plct;
+            using wpkt=hub<wchar_t>::pkt;
+            using wppt=hub<wchar_t>::ppt;
+            using wpqt=hub<wchar_t>::pqt;
+
+            inline std::shared_ptr<wpet> wpe() { return hub<wchar_t>::pe(); }
+
+            inline std::shared_ptr<wpst> wps(const std::function<bool(const wchar_t &)> &f) { return hub<wchar_t>::ps(f); }
+
+            template<typename Context>
+            inline std::shared_ptr<wpsct<Context>> wps(Context &&c, const std::function<bool(const Context &, const wchar_t &)> &f) { return hub<wchar_t>::ps(c, f); }
+
+            inline std::shared_ptr<wpst> wpsa() { return hub<wchar_t>::psa(); }
+
+            inline std::shared_ptr<wpsct<wchar_t>> wpsc(const wchar_t &c) { return hub<wchar_t>::psc(c); }
+
+            inline std::shared_ptr<wpsct<typename Traits<wchar_t>::String>> wpss(typename Traits<wchar_t>::String &&s) { return hub<wchar_t>::pss(std::move(s)); }
+
+            inline std::shared_ptr<wpsct<std::array<wchar_t, 2>>> wpsr(const wchar_t &c, const wchar_t &d) { return hub<wchar_t>::psr(c, d); }
+
+            inline std::shared_ptr<wpsct<std::list<std::shared_ptr<wpst>>>> wpsu(std::list<std::shared_ptr<wpst>> &&l) { return hub<wchar_t>::psu(std::move(l)); }
+
+            inline std::shared_ptr<wpsct<std::list<std::shared_ptr<wpst>>>> wpsi(std::list<std::shared_ptr<wpst>> &&l) { return hub<wchar_t>::psi(std::move(l)); }
+
+            inline std::shared_ptr<wpsct<std::list<std::shared_ptr<wpst>>>> wpsd(std::list<std::shared_ptr<wpst>> &&l) { return hub<wchar_t>::psd(std::move(l)); }
+
+            inline std::shared_ptr<wpbut> wpbu(const std::shared_ptr<wpt> &p, const std::shared_ptr<wpt> &q) { return hub<wchar_t>::pbu(p, q); }
+
+            inline std::shared_ptr<wpbit> wpbi(const std::shared_ptr<wpt> &p, const std::shared_ptr<wpt> &q) { return hub<wchar_t>::pbi(p, q); }
+
+            inline std::shared_ptr<wpbdt> wpbd(const std::shared_ptr<wpt> &p, const std::shared_ptr<wpt> &q) { return hub<wchar_t>::pbd(p, q); }
+
+            inline std::shared_ptr<wpbct> wpbc(const std::shared_ptr<wpt> &p, const std::shared_ptr<wpt> &q) { return hub<wchar_t>::pbc(p, q); }
+
+            inline std::shared_ptr<wpt> wpbc(const typename Traits<wchar_t>::String &s) { return hub<wchar_t>::pbc(s); }
+
+            inline std::shared_ptr<wplut> wplu(std::list<typename wplt::Item> &&l) { return hub<wchar_t>::plu(std::move(l)); }
+
+            inline std::shared_ptr<wplit> wpli(std::list<typename wplt::Item> &&l) { return hub<wchar_t>::pli(std::move(l)); }
+
+            inline std::shared_ptr<wpldt> wpld(std::list<typename wplt::Item> &&l) { return hub<wchar_t>::pld(std::move(l)); }
+
+            inline std::shared_ptr<wplct> wplc(std::list<typename wplt::Item> &&l) { return hub<wchar_t>::plc(std::move(l)); }
+
+            inline std::shared_ptr<wplct> wplc(const typename Traits<wchar_t>::String &s) { return hub<wchar_t>::plc(s); }
+
+            inline std::shared_ptr<wpkt> wpk(const std::shared_ptr<wpt> &p) { return hub<wchar_t>::pk(p); }
+
+            inline std::shared_ptr<wppt> wpp() { return hub<wchar_t>::pp(); }
+
+            inline std::shared_ptr<wpqt> wpq(const std::shared_ptr<wpt> &p) { return hub<wchar_t>::pq(p); }
+        }
+    }
 }
