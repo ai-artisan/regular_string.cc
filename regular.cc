@@ -257,8 +257,8 @@ namespace regular {
 
 
     template<typename Character>
-    inline std::shared_ptr<typename hub<Character>::pet> hub<Character>::pe() {
-        return std::make_shared<pet>();
+    inline std::shared_ptr<typename hub<Character>::pot> hub<Character>::po() {
+        return std::make_shared<pot>();
     }
 
     template<typename Character>
@@ -377,7 +377,7 @@ namespace regular {
 
     template<typename Character>
     std::shared_ptr<typename hub<Character>::pt> hub<Character>::pbc(const typename Traits<Character>::String &s) {
-        std::shared_ptr<pt> p = pe();
+        std::shared_ptr<pt> p = po();
         for (auto i = s.crbegin(); i != s.crend(); ({
             std::array<std::shared_ptr<pt>, 2> binary = {psc(*i), p};
             p = std::make_shared<pbct>(std::move(binary));

@@ -286,7 +286,7 @@ namespace regular {
         using rkt=record::KleeneClosure<Character>;
 
         using pt=Pattern<Character>;
-        using pet=pattern::Empty<Character>;
+        using pot=pattern::Empty<Character>;
         using pst=pattern::Singleton<Character>;
         template<typename Context>
         using psct=pattern::singleton::Closure<Character, Context>;
@@ -304,7 +304,7 @@ namespace regular {
         using ppt=pattern::Placeholder<Character>;
         using pqt=pattern::Collapsed<Character>;
 
-        static std::shared_ptr<pet> pe();
+        static std::shared_ptr<pot> po();
 
         static std::shared_ptr<pst> ps(const std::function<bool(const Character &)> &);
 
@@ -362,7 +362,7 @@ namespace regular {
             using rkt=hub<char>::rkt;
 
             using pt=hub<char>::pt;
-            using pet=hub<char>::pet;
+            using pot=hub<char>::pot;
             using pst=hub<char>::pst;
             template<typename Context>
             using psct=hub<char>::psct<Context>;
@@ -380,7 +380,7 @@ namespace regular {
             using ppt=hub<char>::ppt;
             using pqt=hub<char>::pqt;
 
-            inline std::shared_ptr<pet> pe() { return hub<char>::pe(); }
+            inline std::shared_ptr<pot> pe() { return hub<char>::po(); }
 
             inline std::shared_ptr<pst> ps(const std::function<bool(const char &)> &f) { return hub<char>::ps(f); }
 
@@ -436,7 +436,7 @@ namespace regular {
             using wrkt=hub<wchar_t>::rkt;
 
             using wpt=hub<wchar_t>::pt;
-            using wpet=hub<wchar_t>::pet;
+            using wpot=hub<wchar_t>::pot;
             using wpst=hub<wchar_t>::pst;
             template<typename Context>
             using wpsct=hub<wchar_t>::psct<Context>;
@@ -454,7 +454,7 @@ namespace regular {
             using wppt=hub<wchar_t>::ppt;
             using wpqt=hub<wchar_t>::pqt;
 
-            inline std::shared_ptr<wpet> wpe() { return hub<wchar_t>::pe(); }
+            inline std::shared_ptr<wpot> wpe() { return hub<wchar_t>::po(); }
 
             inline std::shared_ptr<wpst> wps(const std::function<bool(const wchar_t &)> &f) { return hub<wchar_t>::ps(f); }
 
