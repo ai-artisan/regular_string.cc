@@ -5,8 +5,8 @@
 #include <string>
 #include <sstream>
 
-#include "regular.h"
-#include "regular.cc"
+#include "../src/regular.h"
+#include "../src/regular.cc"
 
 
 int main(int argc, char *argv[]) {
