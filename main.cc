@@ -32,55 +32,46 @@ int main(int argc, char *argv[]) {
     /**
      * 提取
      */
-    auto r_whitespace = wplc(L"\f\n\r\t\v ");
-    auto r_whitespaces = wplc({r_whitespace, wpk(r_whitespace)});
-    auto r_digit = wpsu({wpsr(L'0', L'9'), wpsr(L'A', L'F'), wpss(L".e")});
-//    auto r_number = RC()
-//            ->item(RU()
-//                           ->item(RSI(L"+-"))
-//                           ->item(RN())
-//            )
-//            ->item(r_digit)
-//            ->item(RK(r_digit));
-//    auto r_alphabet = RU()
-//            ->item(RSR(L'a', L'z'))
-//            ->item(RSR(L'A', L'Z'));
-//    auto r_word = RC()
-//            ->item(r_alphabet)
-//            ->item(RK(r_alphabet));
-//    auto r_http = RC()
-//            ->item(RC(L"http://"))
-//            ->item(RU()
-//                           ->item(r_word)
-//                           ->item(r_digit)
-//                           ->item(RSI(L"/."))
-//            );
-//    auto r = RK(RU()
-//                        ->item(RC()
-//                                       ->item(RC(L"{{"))
-//                                       ->item(RC()
-//                                                      ->item(CLPSD(RK(RSI(L':', false))), L"CATEGORY")
-//                                                      ->item(RSI(L':'))
-//                                                      ->item(RK(RU()
-//                                                                        ->item(CLPSD(RC()
-//                                                                                             ->item(RC(L"http://"))
-//                                                                                             ->item(RK(RSI(L'}', false)))
-//                                                                        ), L"HTTP")
-//                                                                        ->item(CLPSD(r_whitespaces))
-//                                                                        ->item(CLPSD(r_http), L"HTTP")
-//                                                                        ->item(CLPSD(r_number), L"NUMBER")
-//                                                                        ->item(CLPSD(r_word), L"WORD")
-//                                                                        ->item(RSI(L'}', false), L"ATOM")
-//                                                      ), L"CONTENT"), L"MAIN"
-//                                       )
-//                                       ->item(RC(L"}}")), L"LABEL"
-//                        )
-//                        ->item(CLPSD(r_whitespaces))
-//                        ->item(CLPSD(r_http), L"HTTP")
-//                        ->item(CLPSD(r_number), L"NUMBER")
-//                        ->item(CLPSD(r_word), L"WORD")
-//                        ->item(RSA(), L"ATOM")
-//    );
+    auto p_whitespace = wplc(L"\f\n\r\t\v ");
+    auto p_whitespaces = wplc({p_whitespace, wpk(p_whitespace)});
+    auto p_digit = wpsu({wpsr(L'0', L'9'), wpsr(L'A', L'F'), wpss(L".e")});
+    auto p_number = wplc({wplu({wpss(L"+-"), wpe()}), p_digit, wpk(p_digit)});
+    auto p_alphabet = wpsu({wpsr(L'a', L'z'), wpsr(L'A', L'Z')});
+    auto p_word = wplc({p_alphabet, wpk(p_alphabet)});
+
+    auto p_http = wplc({wplc(L"http://"), wplu({p_word, p_digit, wpss(L"/.")})});
+    auto p = wpk(wplu(
+            {
+                    {L"LABEL", wplc(
+                            {
+                                    wplc(L"{{"),
+                                    {L"MAIN", wplc(
+                                            {
+                                                    {L"CATEGORY", wpq(RK(RSI(L':', false)))},
+                                                    wpss()item(RSI(L':')),
+                                                    item(RK(RU()
+                                                                    ->item(CLPSD(RC()
+                                                                                         ->item(RC(L"http://"))
+                                                                                         ->item(RK(RSI(L'}', false)))
+                                                                    ), L"HTTP")
+                                                                    ->item(CLPSD(p_whitespaces))
+                                                                    ->item(CLPSD(p_http), L"HTTP")
+                                                                    ->item(CLPSD(p_number), L"NUMBER")
+                                                                    ->item(CLPSD(p_word), L"WORD")
+                                                                    ->item(RSI(L'}', false), L"ATOM")
+                                                    ), L"CONTENT")
+                                            }
+                                    )},
+                                    item(RC(L"}}"))
+                            }
+                    )},
+                    item(CLPSD(p_whitespaces)),
+                    item(CLPSD(p_http), L"HTTP"),
+                    item(CLPSD(p_number), L"NUMBER"),
+                    item(CLPSD(p_word), L"WORD"),
+                    item(RSA(), L"ATOM"))
+            }
+    );
 //    auto m = r->match(source.cbegin(), source.cend());
 //
     /**
