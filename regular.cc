@@ -15,7 +15,7 @@ namespace regular {
 
     namespace pattern {
         template<typename Character>
-        typename Pattern<Character>::Matched inline Empty<Character>::match(
+        inline typename Pattern<Character>::Matched Empty<Character>::match(
                 const typename Traits<Character>::String::const_iterator &begin,
                 const typename Traits<Character>::String::const_iterator &end
         ) const {
@@ -27,8 +27,15 @@ namespace regular {
                 const typename Traits<Character>::String::const_iterator &begin,
                 const typename Traits<Character>::String::const_iterator &end
         ) const {
-            if (begin != end && describe(*begin)) return {true, std::make_shared<Record<Character>>(std::next(begin))};
-            else return {false, std::make_shared<Record<Character>>(begin)};
+            bool success;
+            auto end1 = (begin == end ? ({
+                success = false;
+                begin;
+            }) : ({
+                success = describe(*begin);
+                std::next(begin);
+            }));
+            return {success, std::make_shared<Record<Character>>(end1)};
         }
 
         namespace singleton {
@@ -66,7 +73,7 @@ namespace regular {
                     every[1] = matched.record;
                     if (matched.record->end != every[0]->end) success = false;
                 } else success = false;
-                return {matched.success, std::make_shared<record::BinaryEvery<Character>>(every[1]->end, std::move(every))};
+                return {matched.success, std::make_shared<record::BinaryEvery<Character>>(matched.record->end, std::move(every))};
             }
 
             template<typename Character>
@@ -96,7 +103,7 @@ namespace regular {
                     matched = this->binary[1]->match(matched.record->end, end);
                     every[1] = matched.record;
                 }
-                return {matched.success, std::make_shared<record::BinaryEvery<Character>>(every[1]->end, std::move(every))};
+                return {matched.success, std::make_shared<record::BinaryEvery<Character>>(matched.record->end, std::move(every))};
             }
         }
 
@@ -250,37 +257,37 @@ namespace regular {
 
 
     template<typename Character>
-    inline std::shared_ptr<pattern::Empty<Character>> shortcut<Character>::pe() {
-        return std::make_shared<pattern::Empty<Character>>();
+    inline std::shared_ptr<typename hub<Character>::pet> hub<Character>::pe() {
+        return std::make_shared<pet>();
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::Singleton<Character>> shortcut<Character>::ps(const std::function<bool(const Character &)> &describe) {
-        return std::make_shared<pattern::Singleton<Character>>(describe);
+    inline std::shared_ptr<typename hub<Character>::pst> hub<Character>::ps(const std::function<bool(const Character &)> &describe) {
+        return std::make_shared<pst>(describe);
     }
 
     template<typename Character>
     template<typename Context>
-    inline std::shared_ptr<pattern::singleton::Closure<Character, Context>> shortcut<Character>::ps(Context &&context, const decltype(pattern::singleton::Closure<Character, Context>::depict) &depict) {
+    inline std::shared_ptr<pattern::singleton::Closure<Character, Context>> hub<Character>::ps(Context &&context, const std::function<bool(const Context &, const Character &)> &depict) {
         return std::make_shared<pattern::singleton::Closure<Character, Context>>(std::forward<Context>(context), depict);
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::Singleton<Character>> shortcut<Character>::psa() {
-        return std::make_shared<pattern::Singleton<Character>>([](const Character &) {
+    inline std::shared_ptr<typename hub<Character>::pst> hub<Character>::psa() {
+        return std::make_shared<pst>([](const Character &) {
             return true;
         });
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::singleton::Closure<Character, Character>> shortcut<Character>::psc(const Character &c0) {
+    inline std::shared_ptr<pattern::singleton::Closure<Character, Character>> hub<Character>::psc(const Character &c0) {
         return std::make_shared<pattern::singleton::Closure<Character, Character>>(Character(c0), [](const Character &c0, const Character &c) -> bool {
             return c == c0;
         });
     }
 
     template<typename Character>
-    std::shared_ptr<pattern::singleton::Closure<Character, typename Traits<Character>::String>> shortcut<Character>::pss(typename Traits<Character>::String &&s) {
+    std::shared_ptr<pattern::singleton::Closure<Character, typename Traits<Character>::String>> hub<Character>::pss(typename Traits<Character>::String &&s) {
         return std::make_shared<pattern::singleton::Closure<Character, typename Traits<Character>::String>>(std::move(s), [&](const typename Traits<Character>::String &s, const Character &c) -> bool {
             for (auto i = s.cbegin(); i != s.cend(); ({
                 if (c == *i) return true;
@@ -291,7 +298,7 @@ namespace regular {
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::singleton::Closure<Character, std::array<Character, 2>>> shortcut<Character>::psr(const Character &inf, const Character &sup) {
+    inline std::shared_ptr<pattern::singleton::Closure<Character, std::array<Character, 2>>> hub<Character>::psr(const Character &inf, const Character &sup) {
         return std::make_shared<pattern::singleton::Closure<Character, std::array<Character, 2>>>(std::array{inf, sup}, [&](const std::array<Character, 2> &interval, const Character &c) -> bool {
             return interval[0] <= c && c <= interval[1];
         });
@@ -299,12 +306,12 @@ namespace regular {
 
     template<typename Character>
     std::shared_ptr<pattern::singleton::Closure<Character,
-            std::list<std::shared_ptr<pattern::Singleton<Character>>>
-    >> shortcut<Character>::psu(std::list<std::shared_ptr<pattern::Singleton<Character>>> &&list) {
+            std::list<std::shared_ptr<typename hub<Character>::pst>>
+    >> hub<Character>::psu(std::list<std::shared_ptr<pst>> &&list) {
         return std::make_shared<pattern::singleton::Closure<
                 Character,
-                std::list<std::shared_ptr<pattern::Singleton<Character>>>
-        >>(std::move(list), [&](const std::list<std::shared_ptr<pattern::Singleton<Character>>> &list, const Character &c) -> bool {
+                std::list<std::shared_ptr<pst>>
+        >>(std::move(list), [&](const std::list<std::shared_ptr<pst>> &list, const Character &c) -> bool {
             for (auto i = list.cbegin(); i != list.cend(); ({
                 if ((*i)->describe(c)) return true;
                 i++;
@@ -316,12 +323,12 @@ namespace regular {
     template<typename Character>
     std::shared_ptr<pattern::singleton::Closure<
             Character,
-            std::list<std::shared_ptr<pattern::Singleton<Character>>>
-    >> shortcut<Character>::psi(std::list<std::shared_ptr<pattern::Singleton<Character>>> &&list) {
+            std::list<std::shared_ptr<typename hub<Character>::pst>>
+    >> hub<Character>::psi(std::list<std::shared_ptr<typename hub<Character>::pst>> &&list) {
         return std::make_shared<pattern::singleton::Closure<
                 Character,
-                std::list<std::shared_ptr<pattern::Singleton<Character>>>
-        >>(std::move(list), [&](const std::list<std::shared_ptr<pattern::Singleton<Character>>> &list, const Character &c) -> bool {
+                std::list<std::shared_ptr<pst>>
+        >>(std::move(list), [&](const std::list<std::shared_ptr<pst>> &list, const Character &c) -> bool {
             for (auto i = list.cbegin(); i != list.cend(); ({
                 if (!(*i)->describe(c)) return false;
                 i++;
@@ -333,12 +340,12 @@ namespace regular {
     template<typename Character>
     std::shared_ptr<pattern::singleton::Closure<
             Character,
-            std::list<std::shared_ptr<pattern::Singleton<Character>>>
-    >> shortcut<Character>::psd(std::list<std::shared_ptr<pattern::Singleton<Character>>> &&list) {
+            std::list<std::shared_ptr<typename hub<Character>::pst>>
+    >> hub<Character>::psd(std::list<std::shared_ptr<typename hub<Character>::pst>> &&list) {
         return std::make_shared<pattern::singleton::Closure<
                 Character,
-                std::list<std::shared_ptr<pattern::Singleton<Character>>>
-        >>(std::move(list), [&](const std::list<std::shared_ptr<pattern::Singleton<Character>>> &list, const Character &c) -> bool {
+                std::list<std::shared_ptr<pst>>
+        >>(std::move(list), [&](const std::list<std::shared_ptr<pst>> &list, const Character &c) -> bool {
             bool b = false;
             for (auto i = list.crbegin(); i != list.crend(); ({
                 b = (*i)->describe(c) && !b;
@@ -349,27 +356,27 @@ namespace regular {
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::binary::Union<Character>> shortcut<Character>::pbu(const std::shared_ptr<regular::Pattern<Character>> &p0, const std::shared_ptr<regular::Pattern<Character>> &p1) {
-        return std::make_shared<pattern::binary::Union<Character>>(std::array{p0, p1});
+    inline std::shared_ptr<typename hub<Character>::pbut> hub<Character>::pbu(const std::shared_ptr<pt> &p0, const std::shared_ptr<pt> &p1) {
+        return std::make_shared<pbut>(std::array{p0, p1});
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::binary::Intersection<Character>> shortcut<Character>::pbi(const std::shared_ptr<regular::Pattern<Character>> &p0, const std::shared_ptr<regular::Pattern<Character>> &p1) {
-        return std::make_shared<pattern::binary::Intersection<Character>>(std::array{p0, p1});
+    inline std::shared_ptr<typename hub<Character>::pbit> hub<Character>::pbi(const std::shared_ptr<pt> &p0, const std::shared_ptr<pt> &p1) {
+        return std::make_shared<pbit>(std::array{p0, p1});
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::binary::Difference<Character>> shortcut<Character>::pbd(const std::shared_ptr<regular::Pattern<Character>> &p0, const std::shared_ptr<regular::Pattern<Character>> &p1) {
-        return std::make_shared<pattern::binary::Difference<Character>>(std::array{p0, p1});
+    inline std::shared_ptr<typename hub<Character>::pbdt> hub<Character>::pbd(const std::shared_ptr<pt> &p0, const std::shared_ptr<pt> &p1) {
+        return std::make_shared<pbdt>(std::array{p0, p1});
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::binary::Concatenation<Character>> shortcut<Character>::pbc(const std::shared_ptr<regular::Pattern<Character>> &p0, const std::shared_ptr<regular::Pattern<Character>> &p1) {
-        return std::make_shared<pattern::binary::Concatenation<Character>>(std::array{p0, p1});
+    inline std::shared_ptr<typename hub<Character>::pbct> hub<Character>::pbc(const std::shared_ptr<pt> &p0, const std::shared_ptr<pt> &p1) {
+        return std::make_shared<pbct>(std::array{p0, p1});
     }
 
     template<typename Character>
-    std::shared_ptr<typename shortcut<Character>::pt> shortcut<Character>::pbc(const typename Traits<Character>::String &s) {
+    std::shared_ptr<typename hub<Character>::pt> hub<Character>::pbc(const typename Traits<Character>::String &s) {
         std::shared_ptr<pt> p = pe();
         for (auto i = s.crbegin(); i != s.crend(); ({
             std::array<std::shared_ptr<pt>, 2> binary = {psc(*i), p};
@@ -380,28 +387,28 @@ namespace regular {
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::linear::Union<Character>> shortcut<Character>::plu(std::list<typename pattern::Linear<Character>::Item> &&list) {
-        return std::make_shared<pattern::linear::Union<Character>>(std::move(list));
+    inline std::shared_ptr<typename hub<Character>::plut> hub<Character>::plu(std::list<typename plt::Item> &&list) {
+        return std::make_shared<plut>(std::move(list));
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::linear::Intersection<Character>> shortcut<Character>::pli(std::list<typename pattern::Linear<Character>::Item> &&list) {
-        return std::make_shared<pattern::linear::Intersection<Character>>(std::move(list));
+    inline std::shared_ptr<typename hub<Character>::plit> hub<Character>::pli(std::list<typename plt::Item> &&list) {
+        return std::make_shared<plit>(std::move(list));
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::linear::Difference<Character>> shortcut<Character>::pld(std::list<typename pattern::Linear<Character>::Item> &&list) {
-        return std::make_shared<pattern::linear::Difference<Character>>(std::move(list));
+    inline std::shared_ptr<typename hub<Character>::pldt> hub<Character>::pld(std::list<typename plt::Item> &&list) {
+        return std::make_shared<pldt>(std::move(list));
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::linear::Concatenation<Character>> shortcut<Character>::plc(std::list<typename pattern::Linear<Character>::Item> &&list) {
-        return std::make_shared<pattern::linear::Concatenation<Character>>(std::move(list));
+    inline std::shared_ptr<typename hub<Character>::plct> hub<Character>::plc(std::list<typename plt::Item> &&list) {
+        return std::make_shared<plct>(std::move(list));
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::linear::Concatenation<Character>> shortcut<Character>::plc(const typename Traits<Character>::String &s) {
-        std::list<typename pattern::Linear<Character>::Item> linear;
+    inline std::shared_ptr<typename hub<Character>::plct> hub<Character>::plc(const typename Traits<Character>::String &s) {
+        std::list<typename plt::Item> linear;
         for (auto i = s.cbegin(); i != s.cend(); ({
             linear.emplace_back(psc(*i));
             i++;
@@ -410,18 +417,18 @@ namespace regular {
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::KleeneClosure<Character>> shortcut<Character>::pk(const std::shared_ptr<regular::Pattern<Character>> &item) {
-        return std::make_shared<pattern::KleeneClosure<Character>>(item);
+    inline std::shared_ptr<typename hub<Character>::pkt> hub<Character>::pk(const std::shared_ptr<pt> &item) {
+        return std::make_shared<pkt>(item);
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::Placeholder<Character>> shortcut<Character>::pp() {
-        return std::make_shared<pattern::Placeholder<Character>>();
+    inline std::shared_ptr<typename hub<Character>::ppt> hub<Character>::pp() {
+        return std::make_shared<ppt>();
     }
 
     template<typename Character>
-    inline std::shared_ptr<pattern::Collapsed<Character>> shortcut<Character>::pq(const std::shared_ptr<regular::Pattern<Character>> &p) {
-        return std::make_shared<pattern::Collapsed<Character>>(p);
+    inline std::shared_ptr<typename hub<Character>::pqt> hub<Character>::pq(const std::shared_ptr<pt> &p) {
+        return std::make_shared<pqt>(p);
     }
 }
 

@@ -9,9 +9,11 @@
 
 
 int main(int argc, char *argv[]) {
-    using $=regular::shortcut<char>;
+    using $=regular::hub<char>;
 
-    auto p = $::plc("asdf");
+    auto p = $::ps<char>('a', [](const char &, const char &) -> bool {
+        return false;
+    });
     std::string s = "asdf1234";
     auto m = p->match(s.cbegin(), s.cend());
     std::cout << m.success << '\n';
