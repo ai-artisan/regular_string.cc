@@ -47,31 +47,35 @@ int main(int argc, char *argv[]) {
                                     wplc(L"{{"),
                                     {L"MAIN", wplc(
                                             {
-                                                    {L"CATEGORY", wpq(RK(RSI(L':', false)))},
-                                                    wpss()item(RSI(L':')),
-                                                    item(RK(RU()
-                                                                    ->item(CLPSD(RC()
-                                                                                         ->item(RC(L"http://"))
-                                                                                         ->item(RK(RSI(L'}', false)))
-                                                                    ), L"HTTP")
-                                                                    ->item(CLPSD(p_whitespaces))
-                                                                    ->item(CLPSD(p_http), L"HTTP")
-                                                                    ->item(CLPSD(p_number), L"NUMBER")
-                                                                    ->item(CLPSD(p_word), L"WORD")
-                                                                    ->item(RSI(L'}', false), L"ATOM")
-                                                    ), L"CONTENT")
+                                                    {L"CATEGORY", wpq(wpk(wpsd({wpsa(), wpsc(L':')})))},
+                                                    wpsc(L':'),
+                                                    {L"CONTENT", wpk(wplu(
+                                                            {
+                                                                    {L"HTTP", wpq(wplc(
+                                                                            {
+                                                                                    wplc(L"http://"),
+                                                                                    wpk(wpsd({wpsa(), wpsc(L'}')}))
+                                                                            }
+                                                                    ))},
+                                                                    wpq(p_whitespace),
+                                                                    {L"HTTP", wpq(p_http)},
+                                                                    {L"NUMBER", wpq(p_number)},
+                                                                    {L"WORD", wpq(p_word)},
+                                                                    {L"ATOM", wpsd({wpsa(), wpsc(L'}')})}
+                                                            }
+                                                    ))}
                                             }
                                     )},
-                                    item(RC(L"}}"))
+                                    wplc(L"}}")
                             }
                     )},
-                    item(CLPSD(p_whitespaces)),
-                    item(CLPSD(p_http), L"HTTP"),
-                    item(CLPSD(p_number), L"NUMBER"),
-                    item(CLPSD(p_word), L"WORD"),
-                    item(RSA(), L"ATOM"))
+                    wpq(p_whitespaces),
+                    {L"HTTP", wpq(p_http)},
+                    {L"NUMBER", wpq(p_number)},
+                    {L"WORD", wpq(p_word)},
+                    {L"ATOM", wpsa()}
             }
-    );
+    ));
 //    auto m = r->match(source.cbegin(), source.cend());
 //
     /**
