@@ -305,7 +305,7 @@ namespace regular {
             using ppt=hub<char>::ppt;
             using pqt=hub<char>::pqt;
 
-            inline std::shared_ptr<pot> pe() { return hub<char>::po(); }
+            inline std::shared_ptr<pot> po() { return hub<char>::po(); }
 
             inline std::shared_ptr<pst> ps(const std::function<bool(const char &)> &f) { return hub<char>::ps(f); }
 
@@ -365,7 +365,7 @@ namespace regular {
             using wppt=hub<wchar_t>::ppt;
             using wpqt=hub<wchar_t>::pqt;
 
-            inline std::shared_ptr<wpot> wpe() { return hub<wchar_t>::po(); }
+            inline std::shared_ptr<wpot> wpo() { return hub<wchar_t>::po(); }
 
             inline std::shared_ptr<wpst> wps(const std::function<bool(const wchar_t &)> &f) { return hub<wchar_t>::ps(f); }
 
