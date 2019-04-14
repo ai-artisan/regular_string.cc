@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
     auto p_whitespace = wplc(L"\f\n\r\t\v ");
     auto p_whitespaces = wplc({p_whitespace, wpk(p_whitespace)});
     auto p_digit = wpsu({wpsr(L'0', L'9'), wpsr(L'A', L'F'), wpss(L".e")});
-    auto p_number = wplc({wplu({wpss(L"+-"), wpe()}), p_digit, wpk(p_digit)});
+    auto p_number = wplc({wplu({wpss(L"+-"), wpo()}), p_digit, wpk(p_digit)});
     auto p_alphabet = wpsu({wpsr(L'a', L'z'), wpsr(L'A', L'Z')});
     auto p_word = wplc({p_alphabet, wpk(p_alphabet)});
 
@@ -95,11 +95,11 @@ int main(int argc, char *argv[]) {
     for (auto i = list.cbegin(); i != list.cend(); ({
         auto m = (*i)->as<wrlst>();
         auto key = m->key;
-        auto value = m->some;
+        auto value = m->value;
         if (key == L"LABEL") {
-            auto m = value->as<wrlet>()->every.at(L"MAIN")->as<wrlet>();
-            auto category = m->every.at(L"CATEGORY")->string();
-            auto list = m->every.at(L"CONTENT")->as<wrkt>()->list;
+            auto m = value->as<wrlet>()->map.at(L"MAIN")->as<wrlet>();
+            auto category = m->map.at(L"CATEGORY")->string();
+            auto list = m->map.at(L"CONTENT")->as<wrkt>()->list;
             std::list<std::wstring> cache;
             for (auto i = list.cbegin(); i != list.cend(); ({
                 auto m = (*i)->as<wrlst>();
@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
                 if (key == L"HTTP") cache.emplace_back(HTTP);
                 else if (key == L"NUMBER") cache.emplace_back(NUMBER);
                 else if (key == L"WORD") cache.emplace_back(WORD);
-                else if (key == L"ATOM") cache.emplace_back(m->some->string());
+                else if (key == L"ATOM") cache.emplace_back(m->value->string());
                 i++;
             }));
             if (!cache.empty()) {

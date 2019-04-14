@@ -40,7 +40,7 @@ namespace regular {
 
         namespace singleton {
             template<typename Character, typename Context>
-            Closure<Character, Context>::Closure(Context &&context, const decltype(depict) &depict):
+            Closure<Character, Context>::Closure(Context &&context, const TYPE(depict) &depict):
                     Singleton<Character>([&](const Character &c) { return this->depict(this->context, c); }), context(std::move(context)), depict(depict) {}
         }
 
@@ -74,15 +74,18 @@ namespace regular {
             ) const {
                 bool success = true;
                 auto end1 = begin;
-                std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> every;
+                std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> map;
+                std::list<std::shared_ptr<Record<Character>>> list;
                 if (!this->linear.empty()) {
                     auto matched = this->linear.front().value->match(begin, end);
-                    every[this->linear.front().key] = matched.record;
+                    map[this->linear.front().key] = matched.record;
+                    list.emplace_back(matched.record);
                     if (matched.success) {
                         end1 = matched.record->end;
                         for (auto i = std::next(this->linear.cbegin()); i != this->linear.cend(); ({
                             auto matched1 = i->value->match(begin, end1);
-                            every[i->key] = matched1.record;
+                            map[i->key] = matched1.record;
+                            list.emplace_back(matched1.record);
                             if (matched1.success && matched1.record->end == end1) i++;
                             else {
                                 success = false;
@@ -92,7 +95,7 @@ namespace regular {
                         }));
                     } else success = false;
                 }
-                return {success, std::make_shared<record::LinearEvery<Character>>(begin, end1, std::move(every))};
+                return {success, std::make_shared<record::LinearEvery<Character>>(begin, end1, std::move(map), std::move(list))};
             }
 
             template<typename Character>
@@ -139,17 +142,19 @@ namespace regular {
             ) const {
                 bool success = true;
                 auto end1 = begin;
-                std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> every;
+                std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> map;
+                std::list<std::shared_ptr<Record<Character>>> list;
                 for (auto i = this->linear.cbegin(); i != this->linear.cend(); ({
                     auto matched = i->value->match(end1, end);
                     end1 = matched.record->end;
-                    every[i->key] = matched.record;
+                    map[i->key] = matched.record;
+                    list.emplace_back(matched.record);
                     if (!matched.success) {
                         success = false;
                         i = this->linear.cend();
                     } else i++;
                 }));
-                return {success, std::make_shared<record::LinearEvery<Character>>(begin, end1, std::move(every))};
+                return {success, std::make_shared<record::LinearEvery<Character>>(begin, end1, std::move(map), std::move(list))};
             }
         }
 
@@ -345,4 +350,4 @@ namespace regular {
     }
 }
 
-
+#undef TYPE

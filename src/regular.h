@@ -7,6 +7,8 @@
 #include <string>
 #include <tuple>
 
+#define TYPE(X) typename std::remove_const<decltype(X)>::type
+
 namespace regular {
     template<typename...>
     struct Traits {
@@ -33,7 +35,7 @@ namespace regular {
 
         const typename Traits<Character>::String::const_iterator begin, end;
 
-        explicit Record(const decltype(begin) &begin, const decltype(end) &end) :
+        explicit Record(const TYPE(begin) &begin, const TYPE(end) &end) :
                 begin(begin), end(end) {}
 
         inline typename Traits<Character>::String string() const {
@@ -48,25 +50,26 @@ namespace regular {
         template<typename Character>
         struct LinearSome : Record<Character> {
             const typename Traits<Character>::String key;
-            const std::shared_ptr<Record<Character>> some;
+            const std::shared_ptr<Record<Character>> value;
 
-            LinearSome(const decltype(Record<Character>::begin) &begin, const decltype(Record<Character>::end) &end, decltype(key) &&key, const decltype(some) &some) :
-                    Record<Character>(begin, end), key(std::move(key)), some(some) {}
+            LinearSome(const TYPE(Record<Character>::begin) &begin, const TYPE(Record<Character>::end) &end, TYPE(key) &&key, const TYPE(value) &value) :
+                    Record<Character>(begin, end), key(std::move(key)), value(value) {}
         };
 
         template<typename Character>
         struct LinearEvery : Record<Character> {
-            const std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> every;
+            const std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> map;
+            const std::list<std::shared_ptr<Record<Character>>> list;
 
-            LinearEvery(const decltype(Record<Character>::begin) &begin, const decltype(Record<Character>::end) &end, decltype(every) &&every) :
-                    Record<Character>(begin, end), every(std::move(every)) {}
+            LinearEvery(const TYPE(Record<Character>::begin) &begin, const TYPE(Record<Character>::end) &end, TYPE(map) &&map, TYPE(list) &&list) :
+                    Record<Character>(begin, end), map(std::move(map)), list(std::move(list)) {}
         };
 
         template<typename Character>
         struct KleeneClosure : Record<Character> {
             const std::list<std::shared_ptr<Record<Character>>> list;
 
-            KleeneClosure(const decltype(Record<Character>::begin) &begin, const decltype(Record<Character>::end) &end, decltype(list) &&list) :
+            KleeneClosure(const TYPE(Record<Character>::begin) &begin, const TYPE(Record<Character>::end) &end, TYPE(list) &&list) :
                     Record<Character>(begin, end), list(std::move(list)) {}
         };
     }
@@ -104,7 +107,7 @@ namespace regular {
         struct Singleton : Pattern<Character> {
             const std::function<bool(const Character &)> describe;
 
-            explicit Singleton(const decltype(describe) &describe) : describe(describe) {}
+            explicit Singleton(const TYPE(describe) &describe) : describe(describe) {}
 
             typename Pattern<Character>::Matched match(
                     const typename Traits<Character>::String::const_iterator &,
@@ -118,7 +121,7 @@ namespace regular {
                 const Context context;
                 const std::function<bool(const Context &, const Character &)> depict;
 
-                Closure(Context &&, const decltype(depict) &);
+                Closure(Context &&, const TYPE(depict) &);
             };
         }
 
@@ -131,19 +134,19 @@ namespace regular {
                 template<typename Value>
                 /*explicit*/ Item(Value &&value) : key(0, 0), value(std::forward<Value>(value)) {}
 
-                Item(decltype(key) &&key, const decltype(value) &value) :
+                Item(TYPE(key) &&key, const TYPE(value) &value) :
                         key(std::move(key)), value(value) {}
             };
 
             const std::list<Item> linear;
 
-            explicit Linear(decltype(linear) &&linear) : linear(std::move(linear)) {}
+            explicit Linear(TYPE(linear) &&linear) : linear(std::move(linear)) {}
         };
 
         namespace linear {
             template<typename Character>
             struct Union : Linear<Character> {
-                explicit Union(decltype(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
+                explicit Union(TYPE(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
 
                 typename Pattern<Character>::Matched match(
                         const typename Traits<Character>::String::const_iterator &,
@@ -153,7 +156,7 @@ namespace regular {
 
             template<typename Character>
             struct Intersection : Linear<Character> {
-                explicit Intersection(decltype(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
+                explicit Intersection(TYPE(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
 
                 typename Pattern<Character>::Matched match(
                         const typename Traits<Character>::String::const_iterator &,
@@ -165,7 +168,7 @@ namespace regular {
             struct Difference : Linear<Character> {
                 const bool sign;
 
-                explicit Difference(decltype(Linear<Character>::linear) &&linear, const decltype(sign) &sign = true) :
+                explicit Difference(TYPE(Linear<Character>::linear) &&linear, const TYPE(sign) &sign = true) :
                         Linear<Character>(std::move(linear)), sign(sign) {}
 
                 typename Pattern<Character>::Matched match(
@@ -176,7 +179,7 @@ namespace regular {
 
             template<typename Character>
             struct Concatenation : Linear<Character> {
-                explicit Concatenation(decltype(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
+                explicit Concatenation(TYPE(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
 
                 typename Pattern<Character>::Matched match(
                         const typename Traits<Character>::String::const_iterator &,
@@ -189,7 +192,7 @@ namespace regular {
         struct KleeneClosure : Pattern<Character> {
             std::shared_ptr<Pattern<Character>> item;
 
-            explicit KleeneClosure(const decltype(item) &item) : item(item) {}
+            explicit KleeneClosure(const TYPE(item) &item) : item(item) {}
 
             typename Pattern<Character>::Matched match(
                     const typename Traits<Character>::String::const_iterator &,
@@ -211,7 +214,7 @@ namespace regular {
         struct Collapsed : Pattern<Character> {
             const std::shared_ptr<Pattern<Character>> core;
 
-            explicit Collapsed(const decltype(core) &core) : core(core) {};
+            explicit Collapsed(const TYPE(core) &core) : core(core) {};
 
             typename Pattern<Character>::Matched match(
                     const typename Traits<Character>::String::const_iterator &,
