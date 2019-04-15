@@ -2,8 +2,6 @@
 
 #include "regular.h"
 
-#define TYPE(X) typename std::remove_const<decltype(X)>::type
-
 namespace regular {
     template<typename Character>
     struct hub {
@@ -282,5 +280,3 @@ namespace regular {
         }
     }
 }
-
-#undef TYPE
