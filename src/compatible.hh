@@ -1,6 +1,6 @@
 #pragma once
 
-#include "regular.h"
+#include "hub.hh"
 
 namespace regular {
     template<typename Character>
