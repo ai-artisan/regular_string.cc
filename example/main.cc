@@ -18,8 +18,11 @@ int main(int argc, char *argv[]) {
 //    }
 
     {
-        auto p = regular::compatible<char>::pk_plus(regular::hub<char>::po());
-        p->adapt("asdf");
+        using namespace regular::shortcut::narrow;
+        auto p = pk_plus(pss("asdf1234"));
+        auto[success, r] = p->adapt(".---a122asdf");
+        std::cout << success << '\n';
+        std::cout << r->string() << '\n';
     }
 
 

@@ -251,7 +251,7 @@ namespace regular {
                 const typename Traits<Character>::String::const_iterator &end
         ) const {
             auto matched = base->match(begin, end);
-            return {matched.success, process(matched.record)};
+            return {matched.success, process(matched)};
         }
     }
 }
