@@ -18,8 +18,8 @@ int main(int argc, char *argv[]) {
 //    }
 
     {
-        using namespace regular::shortcut::narrow;
-        auto p = regular::compatible<char>::pk_plus(psc('a'));
+        auto p = regular::compatible<char>::pk_plus(regular::hub<char>::po());
+        p->adapt("asdf");
     }
 
 

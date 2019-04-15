@@ -214,7 +214,7 @@ namespace regular {
         template<typename Character>
         struct Custom : Pattern<Character> {
             const std::shared_ptr<Pattern<Character>> base;
-            const std::function<std::shared_ptr<Record<Character>>(const std::shared_ptr<Record<Character>> &)> process;
+            const std::function<std::shared_ptr<Record<Character>>(std::shared_ptr<Record<Character>> &)> process;
 
             Custom(const TYPE(base) &base, const TYPE(process) &process) :
                     base(base), process(process) {}
@@ -292,10 +292,7 @@ namespace regular {
         }
 
         static std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psu(std::list<std::shared_ptr<pst>> &&list) {
-            return std::make_shared<pattern::singleton::Closure<
-                    Character,
-                    std::list<std::shared_ptr<pst>>
-            >>(std::move(list), [&](const std::list<std::shared_ptr<pst>> &list, const Character &c) -> bool {
+            return std::make_shared<hub::psct<std::list<std::shared_ptr<pst>>>>(std::move(list), [&](const std::list<std::shared_ptr<pst>> &list, const Character &c) -> bool {
                 for (auto i = list.cbegin(); i != list.cend(); ({
                     if ((*i)->describe(c)) return true;
                     i++;
@@ -305,10 +302,7 @@ namespace regular {
         }
 
         static std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psi(std::list<std::shared_ptr<typename hub<Character>::pst>> &&list) {
-            return std::make_shared<pattern::singleton::Closure<
-                    Character,
-                    std::list<std::shared_ptr<pst>>
-            >>(std::move(list), [&](const std::list<std::shared_ptr<pst>> &list, const Character &c) -> bool {
+            return std::make_shared<hub::psct<std::list<std::shared_ptr<pst>>>>(std::move(list), [&](const std::list<std::shared_ptr<pst>> &list, const Character &c) -> bool {
                 for (auto i = list.cbegin(); i != list.cend(); ({
                     if (!(*i)->describe(c)) return false;
                     i++;
