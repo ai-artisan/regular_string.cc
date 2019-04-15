@@ -260,23 +260,23 @@ namespace regular {
 
         template<typename Context>
         static inline std::shared_ptr<psct<Context>> ps(Context &&context, const std::function<bool(const Context &, const Character &)> &depict) {
-            return std::make_shared<hub<Character>::psct<Context>>(std::forward<Context>(context), depict);
+            return std::make_shared<psct<Context>>(std::forward<Context>(context), depict);
         }
 
-        static inline std::shared_ptr<pst> psa() {
+        static inline std::shared_ptr<pst> ps() {
             return std::make_shared<pst>([](const Character &) {
                 return true;
             });
         }
 
-        static inline std::shared_ptr<psct<Character>> psc(const Character &c0) {
-            return std::make_shared<hub<Character>::psct<Character>>(Character(c0), [](const Character &c0, const Character &c) -> bool {
+        static inline std::shared_ptr<psct<Character>> ps(const Character &c0) {
+            return std::make_shared<psct<Character>>(Character(c0), [](const Character &c0, const Character &c) -> bool {
                 return c == c0;
             });
         }
 
-        static std::shared_ptr<psct<typename Traits<Character>::String>> pss(typename Traits<Character>::String &&s) {
-            return std::make_shared<hub<Character>::psct<typename Traits<Character>::String>>(std::move(s), [&](const typename Traits<Character>::String &s, const Character &c) -> bool {
+        static std::shared_ptr<psct<typename Traits<Character>::String>> ps(typename Traits<Character>::String &&s) {
+            return std::make_shared<psct<typename Traits<Character>::String>>(std::move(s), [&](const typename Traits<Character>::String &s, const Character &c) -> bool {
                 for (auto i = s.cbegin(); i != s.cend(); ({
                     if (c == *i) return true;
                     i++;
@@ -285,14 +285,14 @@ namespace regular {
             });
         }
 
-        static inline std::shared_ptr<psct<std::array<Character, 2>>> psr(const Character &inf, const Character &sup) {
-            return std::make_shared<hub<Character>::psct<std::array<Character, 2>>>(std::array{inf, sup}, [&](const std::array<Character, 2> &interval, const Character &c) -> bool {
+        static inline std::shared_ptr<psct<std::array<Character, 2>>> ps(const Character &inf, const Character &sup) {
+            return std::make_shared<psct<std::array<Character, 2>>>(std::array{inf, sup}, [&](const std::array<Character, 2> &interval, const Character &c) -> bool {
                 return interval[0] <= c && c <= interval[1];
             });
         }
 
         static std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psu(std::list<std::shared_ptr<pst>> &&list) {
-            return std::make_shared<hub::psct<std::list<std::shared_ptr<pst>>>>(std::move(list), [&](const std::list<std::shared_ptr<pst>> &list, const Character &c) -> bool {
+            return std::make_shared<psct<std::list<std::shared_ptr<pst>>>>(std::move(list), [&](const std::list<std::shared_ptr<pst>> &list, const Character &c) -> bool {
                 for (auto i = list.cbegin(); i != list.cend(); ({
                     if ((*i)->describe(c)) return true;
                     i++;
@@ -301,8 +301,8 @@ namespace regular {
             });
         }
 
-        static std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psi(std::list<std::shared_ptr<typename hub<Character>::pst>> &&list) {
-            return std::make_shared<hub::psct<std::list<std::shared_ptr<pst>>>>(std::move(list), [&](const std::list<std::shared_ptr<pst>> &list, const Character &c) -> bool {
+        static std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psi(std::list<std::shared_ptr<pst>> &&list) {
+            return std::make_shared<psct<std::list<std::shared_ptr<pst>>>>(std::move(list), [&](const std::list<std::shared_ptr<pst>> &list, const Character &c) -> bool {
                 for (auto i = list.cbegin(); i != list.cend(); ({
                     if (!(*i)->describe(c)) return false;
                     i++;
@@ -314,12 +314,12 @@ namespace regular {
         static std::shared_ptr<psct<std::pair<
                 std::list<std::shared_ptr<pst>>,
                 bool
-        >>> psd(std::list<std::shared_ptr<typename hub<Character>::pst>> &&list, const bool &sign) {
-            return std::make_shared<hub::psct<std::pair<
-                    std::list<std::shared_ptr<hub::pst>>,
+        >>> psd(std::list<std::shared_ptr<pst>> &&list, const bool &sign) {
+            return std::make_shared<psct<std::pair<
+                    std::list<std::shared_ptr<pst>>,
                     bool
             >>>(std::pair{std::move(list), sign}, [&](const std::pair<
-                    std::list<std::shared_ptr<hub::pst>>,
+                    std::list<std::shared_ptr<pst>>,
                     bool
             > &pair, const Character &c) -> bool {
                 auto&[l, s]=pair;
@@ -351,7 +351,7 @@ namespace regular {
         static std::shared_ptr<plct> plc(const typename Traits<Character>::String &s) {
             std::list<typename plt::Item> linear;
             for (auto i = s.cbegin(); i != s.cend(); ({
-                linear.emplace_back(psc(*i));
+                linear.emplace_back(ps(*i));
                 i++;
             }));
             return std::make_shared<plct>(std::move(linear));
@@ -403,13 +403,13 @@ namespace regular {
             template<typename Context>
             inline std::shared_ptr<psct<Context>> ps(Context &&c, const std::function<bool(const Context &, const char &)> &f) { return hub<char>::ps(c, f); }
 
-            inline std::shared_ptr<pst> psa() { return hub<char>::psa(); }
+            inline std::shared_ptr<pst> ps() { return hub<char>::ps(); }
 
-            inline std::shared_ptr<psct<char>> psc(const char &c) { return hub<char>::psc(c); }
+            inline std::shared_ptr<psct<char>> ps(const char &c) { return hub<char>::ps(c); }
 
-            inline std::shared_ptr<psct<typename Traits<char>::String>> pss(typename Traits<char>::String &&s) { return hub<char>::pss(std::move(s)); }
+            inline std::shared_ptr<psct<typename Traits<char>::String>> ps(typename Traits<char>::String &&s) { return hub<char>::ps(std::move(s)); }
 
-            inline std::shared_ptr<psct<std::array<char, 2>>> psr(const char &c, const char &d) { return hub<char>::psr(c, d); }
+            inline std::shared_ptr<psct<std::array<char, 2>>> ps(const char &c, const char &d) { return hub<char>::ps(c, d); }
 
             inline std::shared_ptr<psct<std::list<std::shared_ptr<pst>>>> psu(std::list<std::shared_ptr<pst>> &&l) { return hub<char>::psu(std::move(l)); }
 
@@ -466,13 +466,13 @@ namespace regular {
             template<typename Context>
             inline std::shared_ptr<wpsct<Context>> wps(Context &&c, const std::function<bool(const Context &, const wchar_t &)> &f) { return hub<wchar_t>::ps(c, f); }
 
-            inline std::shared_ptr<wpst> wpsa() { return hub<wchar_t>::psa(); }
+            inline std::shared_ptr<wpst> wps() { return hub<wchar_t>::ps(); }
 
-            inline std::shared_ptr<wpsct<wchar_t>> wpsc(const wchar_t &c) { return hub<wchar_t>::psc(c); }
+            inline std::shared_ptr<wpsct<wchar_t>> wps(const wchar_t &c) { return hub<wchar_t>::ps(c); }
 
-            inline std::shared_ptr<wpsct<typename Traits<wchar_t>::String>> wpss(typename Traits<wchar_t>::String &&s) { return hub<wchar_t>::pss(std::move(s)); }
+            inline std::shared_ptr<wpsct<typename Traits<wchar_t>::String>> wps(typename Traits<wchar_t>::String &&s) { return hub<wchar_t>::ps(std::move(s)); }
 
-            inline std::shared_ptr<wpsct<std::array<wchar_t, 2>>> wpsr(const wchar_t &c, const wchar_t &d) { return hub<wchar_t>::psr(c, d); }
+            inline std::shared_ptr<wpsct<std::array<wchar_t, 2>>> wps(const wchar_t &c, const wchar_t &d) { return hub<wchar_t>::ps(c, d); }
 
             inline std::shared_ptr<wpsct<std::list<std::shared_ptr<wpst>>>> wpsu(std::list<std::shared_ptr<wpst>> &&l) { return hub<wchar_t>::psu(std::move(l)); }
 

@@ -19,9 +19,9 @@ int main(int argc, char *argv[]) {
 
     {
         using namespace regular::shortcut::narrow;
-        auto p = pk_plus(pss("asdf1234"));
-        auto[success, r] = p->adapt(".---a122asdf");
-        std::cout << success << '\n';
+        auto p = pk_plus(ps("asdf1234"));
+        auto[b, r] = p->adapt("a122asdf");
+        std::cout << b << '\n';
         std::cout << r->string() << '\n';
     }
 
