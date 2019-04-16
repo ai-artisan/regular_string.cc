@@ -92,17 +92,17 @@ namespace regular {
                 bool success = true;
                 auto end1 = begin;
                 std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> map;
-                std::list<std::shared_ptr<Record<Character>>> list;
+                std::vector<std::shared_ptr<Record<Character>>> vector(this->linear.size(), nullptr);
                 if (!this->linear.empty()) {
                     auto matched = this->linear.front().value->match(begin, end);
                     map[this->linear.front().key] = matched.record;
-                    list.emplace_back(matched.record);
+                    vector.front() = matched.record;
                     if (matched.success) {
                         end1 = matched.record->end;
                         for (auto i = std::next(this->linear.cbegin()); i != this->linear.cend(); ({
                             auto matched1 = i->value->match(begin, end1);
                             map[i->key] = matched1.record;
-                            list.emplace_back(matched1.record);
+                            vector[i - this->linear.cbegin()] = matched1.record;
                             if (matched1.success && matched1.record->end == end1) i++;
                             else {
                                 success = false;
@@ -113,11 +113,11 @@ namespace regular {
                     } else success = false;
                 }
                 return {success, ({
-                    auto r = std::make_shared<record::list::LinearEvery<Character>>();
+                    auto r = std::make_shared<record::LinearEvery<Character>>();
                     r->begin = begin;
                     r->end = end1;
                     r->map = std::move(map);
-                    r->list = std::move(list);
+                    r->vector = std::move(vector);
                     r;
                 })};
             }
@@ -174,23 +174,23 @@ namespace regular {
                 bool success = true;
                 auto end1 = begin;
                 std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> map;
-                std::list<std::shared_ptr<Record<Character>>> list;
+                std::vector<std::shared_ptr<Record<Character>>> vector(this->linear.size(), nullptr);
                 for (auto i = this->linear.cbegin(); i != this->linear.cend(); ({
                     auto matched = i->value->match(end1, end);
                     end1 = matched.record->end;
                     map[i->key] = matched.record;
-                    list.emplace_back(matched.record);
+                    vector[i - this->linear.cbegin()] = matched.record;
                     if (!matched.success) {
                         success = false;
                         i = this->linear.cend();
                     } else i++;
                 }));
                 return {success, ({
-                    auto r = std::make_shared<record::list::LinearEvery<Character>>();
+                    auto r = std::make_shared<record::LinearEvery<Character >>();
                     r->begin = begin;
                     r->end = end1;
                     r->map = std::move(map);
-                    r->list = std::move(list);
+                    r->vector = std::move(vector);
                     r;
                 })};
             }

@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <tuple>
+#include <vector>
 
 #define TYPE(X) typename std::remove_const<decltype(X)>::type
 
@@ -51,16 +52,15 @@ namespace regular {
         };
 
         template<typename Character>
+        struct LinearEvery : Record<Character> {
+            std::vector<std::shared_ptr<Record<Character>>> vector;
+            std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> map;
+        };
+
+        template<typename Character>
         struct Kleene : Record<Character> {
             std::list<std::shared_ptr<Record<Character>>> list;
         };
-
-        namespace list {
-            template<typename Character>
-            struct LinearEvery : Kleene<Character> {
-                std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> map;
-            };
-        }
     }
 
     template<typename Character>
@@ -127,7 +127,7 @@ namespace regular {
                         key(std::move(key)), value(value) {}
             };
 
-            const std::list<Item> linear;
+            const std::vector<Item> linear;
 
             explicit Linear(TYPE(linear) &&linear) : linear(std::move(linear)) {}
         };

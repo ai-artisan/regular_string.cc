@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     {
         using namespace regular::shortcut::narrow;
         auto p = pk_plus(ps("asdf1234"));
-        auto[b, r] = p->adapt("a122asdf");
+        auto[b, r] = p->adapt("<>sdf");
         std::cout << b << '\n';
         std::cout << r->string() << '\n';
     }

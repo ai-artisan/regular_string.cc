@@ -12,7 +12,7 @@ namespace regular {
         static std::shared_ptr<typename hub::pct> pk_plus(const std::shared_ptr<typename hub::pt> &p) {
             return hub::pc(hub::plc({p, hub::pk(p)}), [](typename hub::pct::Matched &m) -> std::shared_ptr<typename hub::rt> {
                 auto &[b, r]=m;
-                auto &lc = r->template as<typename hub::rlet>()->list;
+                auto &lc = r->template as<typename hub::rlet>()->vector;
                 auto &rp = lc.front();
                 std::shared_ptr<typename hub::rkt> rk;
                 if (b) rk = lc.back()->template as<typename hub::rkt>();
