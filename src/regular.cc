@@ -63,12 +63,14 @@ namespace regular {
                 bool success = false;
                 auto end1 = begin;
                 typename Traits<Character>::String key(0, 0);
+                std::size_t index = 0;
                 std::shared_ptr<Record<Character>> record = nullptr;
                 for (auto i = this->linear.cbegin(); i != this->linear.cend(); ({
                     auto matched = i->value->match(begin, end);
                     if (matched.success) {
                         success = true;
                         end1 = matched.record->end;
+                        index = std::size_t(i - this->linear.cbegin());
                         key = i->key;
                         record = matched.record;
                         i = this->linear.cend();
@@ -78,6 +80,7 @@ namespace regular {
                     auto r = std::make_shared<record::LinearSome<Character>>();
                     r->begin = begin;
                     r->end = end1;
+                    r->index = index;
                     r->key = std::move(key);
                     r->value = record;
                     r;
@@ -129,6 +132,7 @@ namespace regular {
             ) const {
                 bool success = false;
                 auto end1 = begin;
+                std::size_t index = 0;
                 typename Traits<Character>::String key(0, 0);
                 std::shared_ptr<Record<Character>> record = nullptr;
 
@@ -140,6 +144,7 @@ namespace regular {
                             auto matched1 = i->value->match(begin, end1);
                             success = matched1.success && matched1.record->end == end1 && !success;
                             if (success) {
+                                index = std::size_t(this->linear.crend() - i - 1);
                                 key = i->key;
                                 record = matched1.record;
                             }
@@ -147,10 +152,12 @@ namespace regular {
                         }));
                         success ^= true;
                         if (success) {
+                            index = 0;
                             key = this->linear.front().key;
                             record = matched.record;
                         }
                     } else {
+                        index = 0;
                         key = this->linear.front().key;
                         record = matched.record;
                     }
@@ -160,6 +167,7 @@ namespace regular {
                     auto r = std::make_shared<record::LinearSome<Character>>();
                     r->begin = begin;
                     r->end = end1;
+                    r->index = index;
                     r->key = std::move(key);
                     r->value = record;
                     r;
@@ -245,14 +253,14 @@ namespace regular {
             })};
         }
 
-        template<typename Character>
-        inline typename Pattern<Character>::Matched Custom<Character>::match(
-                const typename Traits<Character>::String::const_iterator &begin,
-                const typename Traits<Character>::String::const_iterator &end
-        ) const {
-            auto matched = base->match(begin, end);
-            return {matched.success, process(matched)};
-        }
+//        template<typename Character>
+//        inline typename Pattern<Character>::Matched Custom<Character>::match(
+//                const typename Traits<Character>::String::const_iterator &begin,
+//                const typename Traits<Character>::String::const_iterator &end
+//        ) const {
+//            auto matched = base->match(begin, end);
+//            return {matched.success, process(matched)};
+//        }
     }
 }
 

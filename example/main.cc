@@ -1,9 +1,9 @@
-#include <iostream>
-#include <fstream>
-#include <locale>
-#include <codecvt>
-#include <string>
-#include <sstream>
+//#include <iostream>
+//#include <fstream>
+//#include <locale>
+//#include <codecvt>
+//#include <string>
+//#include <sstream>
 
 #include "../regular.hh"
 
@@ -17,13 +17,13 @@ int main(int argc, char *argv[]) {
 //        std::cout << m.record->string() << '\n';
 //    }
 
-    {
-        using namespace regular::shortcut::narrow;
-        auto p = pk_plus(ps("asdf1234"));
-        auto[b, r] = p->adapt("<>sdf");
-        std::cout << b << '\n';
-        std::cout << r->string() << '\n';
-    }
+//    {
+//        using namespace regular::shortcut::narrow;
+//        auto p = p_oom(p_digit);
+//        auto[b, r] = p->adapt("1234aas");
+//        std::cout << b << '\n';
+//        std::cout << r->string() << '\n';
+//    }
 
 
 //    using namespace regular::shortcut::wide;

@@ -9,35 +9,59 @@ namespace regular {
 
         using hub=regular::hub<Character>;
 
-        static std::shared_ptr<typename hub::pct> pk_plus(const std::shared_ptr<typename hub::pt> &p) {
-            return hub::pc(hub::plc({p, hub::pk(p)}), [](typename hub::pct::Matched &m) -> std::shared_ptr<typename hub::rt> {
-                auto &[b, r]=m;
-                auto &lc = r->template as<typename hub::rlet>()->vector;
-                auto &rp = lc.front();
-                std::shared_ptr<typename hub::rkt> rk;
-                if (b) rk = lc.back()->template as<typename hub::rkt>();
-                else {
-                    rk = std::make_shared<typename hub::rkt>();
-                    rk->end = rp->end;
-                }
-                rk->begin = rp->begin;
-                auto &lp = rk->list;
-                lp.emplace(lp.cbegin(), rp);
-                return rk;
-            });
+        static inline std::shared_ptr<typename hub::plct> p_oom(const std::shared_ptr<typename hub::pt> &p) {
+            return hub::plc({{Traits<Character>::string("First"), p},
+                             {Traits<Character>::string("Rest"),  hub::pk(p)}});
+        }
+
+        static inline std::shared_ptr<typename hub::plut> p_ooz(const std::shared_ptr<typename hub::pt> &p) {
+            return hub::plu({{Traits<Character>::string("One"),  p},
+                             {Traits<Character>::string("Zero"), hub::po()}});
+        }
+
+        static inline std::shared_ptr<typename hub::pst> p_dgt() {
+            return hub::ps(48, 57);
+        }
+
+        static inline std::shared_ptr<typename hub::pst> p_abdu() {
+            return hub::psu({hub::ps(97, 122), hub::ps(65, 90), p_dgt(), hub::ps(95)});
+        }
+
+        static inline std::shared_ptr<typename hub::pst> p_ws() {
+            return hub::ps(Traits<Character>::string(" \f\n\r\t\v"));
         }
     };
 
     namespace shortcut {
         namespace narrow {
-            inline std::shared_ptr<hub<char>::pct> pk_plus(const std::shared_ptr<typename hub<char>::pt> &p) {
-                return compatible<char>::pk_plus(p);
+            inline std::shared_ptr<plct> p_oom(const std::shared_ptr<pt> &p) {
+                return compatible<char>::p_oom(p);
             }
+
+            inline std::shared_ptr<plut> p_ooz(const std::shared_ptr<pt> &p) {
+                return compatible<char>::p_ooz(p);
+            }
+
+            const auto p_dgt = compatible<char>::p_dgt();
+
+            const auto p_abdu = compatible<char>::p_abdu();
+
+            const auto p_ws = compatible<char>::p_ws();
         }
         namespace wide {
-            inline std::shared_ptr<hub<wchar_t>::pct> wpk_plus(const std::shared_ptr<typename hub<wchar_t>::pt> &p) {
-                return compatible<wchar_t>::pk_plus(p);
+            inline std::shared_ptr<wplct> p_oom(const std::shared_ptr<wpt> &p) {
+                return compatible<wchar_t>::p_oom(p);
             }
+
+            inline std::shared_ptr<wplut> p_ooz(const std::shared_ptr<wpt> &p) {
+                return compatible<wchar_t>::p_ooz(p);
+            }
+
+            const auto wp_dgt = compatible<wchar_t>::p_dgt();
+
+            const auto wp_abdu = compatible<wchar_t>::p_abdu();
+
+            const auto wp_ws = compatible<wchar_t>::p_ws();
         }
     }
 }

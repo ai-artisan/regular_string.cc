@@ -1,8 +1,10 @@
 #pragma once
 
 #include <array>
+#include <codecvt>
 #include <functional>
 #include <list>
+#include <locale>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -21,6 +23,12 @@ namespace regular {
         ~Traits() = delete;
 
         using String=std::string;
+
+        static inline String string(const std::string &s) {
+            return s;
+        }
+
+
     };
 
     template<>
@@ -28,6 +36,10 @@ namespace regular {
         ~Traits() = delete;
 
         using String=std::wstring;
+
+        static inline String string(const std::string &s) {
+            return std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>().from_bytes(s);
+        }
     };
 
     template<typename Character>
@@ -47,6 +59,7 @@ namespace regular {
     namespace record {
         template<typename Character>
         struct LinearSome : Record<Character> {
+            std::size_t index;
             typename Traits<Character>::String key;
             std::shared_ptr<Record<Character>> value;
         };
@@ -211,18 +224,18 @@ namespace regular {
             ) const final;
         };
 
-        template<typename Character>
-        struct Custom : Pattern<Character> {
-            const std::shared_ptr<Pattern<Character>> base;
-            const std::function<std::shared_ptr<Record<Character>>(typename Custom::Matched &)> process;
-
-            Custom(const TYPE(base) &base, const TYPE(process) &process) :
-                    base(base), process(process) {}
-
-            typename Pattern<Character>::Matched match(
-                    const typename Traits<Character>::String::const_iterator &,
-                    const typename Traits<Character>::String::const_iterator &
-            ) const final;
-        };
+//        template<typename Character>
+//        struct Custom : Pattern<Character> {
+//            const std::shared_ptr<Pattern<Character>> base;
+//            const std::function<std::shared_ptr<Record<Character>>(typename Custom::Matched &)> process;
+//
+//            Custom(const TYPE(base) &base, const TYPE(process) &process) :
+//                    base(base), process(process) {}
+//
+//            typename Pattern<Character>::Matched match(
+//                    const typename Traits<Character>::String::const_iterator &,
+//                    const typename Traits<Character>::String::const_iterator &
+//            ) const final;
+//        };
     }
 }

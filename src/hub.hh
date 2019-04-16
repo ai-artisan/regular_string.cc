@@ -25,7 +25,7 @@ namespace regular {
         using pkt=pattern::KleeneClosure<Character>;
         using ppt=pattern::Placeholder<Character>;
         using pqt=pattern::Collapsed<Character>;
-        using pct=pattern::Custom<Character>;
+//        using pct=pattern::Custom<Character>;
 
         static inline std::shared_ptr<pot> po() {
             return std::make_shared<pot>();
@@ -40,7 +40,7 @@ namespace regular {
             return std::make_shared<psct<Context>>(std::forward<Context>(context), depict);
         }
 
-        static inline std::shared_ptr<pst> ps() {
+        static inline std::shared_ptr<pst> psa() {
             return std::make_shared<pst>([](const Character &) {
                 return true;
             });
@@ -52,13 +52,28 @@ namespace regular {
             });
         }
 
-        static std::shared_ptr<psct<typename Traits<Character>::String>> ps(typename Traits<Character>::String &&s) {
-            return std::make_shared<psct<typename Traits<Character>::String>>(std::move(s), [&](const typename Traits<Character>::String &s, const Character &c) -> bool {
+        static std::shared_ptr<psct<std::unordered_map<
+                Character,
+                nullptr_t
+        >>> ps(typename Traits<Character>::String &&s) {
+            return std::make_shared<psct<std::unordered_map<
+                    Character,
+                    nullptr_t
+            >>>(({
+                std::unordered_map<
+                        Character,
+                        nullptr_t
+                > m;
                 for (auto i = s.cbegin(); i != s.cend(); ({
-                    if (c == *i) return true;
+                    m[*i] = nullptr;
                     i++;
                 }));
-                return false;
+                m;
+            }), [&](const std::unordered_map<
+                    Character,
+                    nullptr_t
+            > &m, const Character &c) -> bool {
+                return m.find(c) != m.cend();
             });
         }
 
@@ -125,7 +140,7 @@ namespace regular {
             return std::make_shared<plct>(std::move(vector));
         }
 
-        static std::shared_ptr<plct> plc(const typename Traits<Character>::String &s) {
+        static std::shared_ptr<plct> plcs(const typename Traits<Character>::String &s) {
             std::vector<typename plt::Item> linear(s.size(), nullptr);
             for (auto i = s.cbegin(); i != s.cend(); ({
                 linear[i - s.cbegin()] = ps(*i);
@@ -146,9 +161,9 @@ namespace regular {
             return std::make_shared<pqt>(p);
         }
 
-        static inline std::shared_ptr<pct> pc(const std::shared_ptr<pt> &base, const TYPE(pct::process) &process) {
-            return std::make_shared<pct>(base, process);
-        }
+//        static inline std::shared_ptr<pct> pc(const std::shared_ptr<pt> &base, const TYPE(pct::process) &process) {
+//            return std::make_shared<pct>(base, process);
+//        }
     };
 
     namespace shortcut {
@@ -171,20 +186,23 @@ namespace regular {
             using pkt=hub<char>::pkt;
             using ppt=hub<char>::ppt;
             using pqt=hub<char>::pqt;
-            using pct=hub<char>::pct;
+//            using pct=hub<char>::pct;
 
-            inline std::shared_ptr<pot> po() { return hub<char>::po(); }
+            const auto po = hub<char>::po();
 
             inline std::shared_ptr<pst> ps(const std::function<bool(const char &)> &f) { return hub<char>::ps(f); }
 
             template<typename Context>
             inline std::shared_ptr<psct<Context>> ps(Context &&c, const std::function<bool(const Context &, const char &)> &f) { return hub<char>::ps(c, f); }
 
-            inline std::shared_ptr<pst> ps() { return hub<char>::ps(); }
+            const auto psa = hub<char>::psa();
 
             inline std::shared_ptr<psct<char>> ps(const char &c) { return hub<char>::ps(c); }
 
-            inline std::shared_ptr<psct<typename Traits<char>::String>> ps(typename Traits<char>::String &&s) { return hub<char>::ps(std::move(s)); }
+            inline std::shared_ptr<psct<std::unordered_map<
+                    char,
+                    nullptr_t
+            >>> ps(typename Traits<char>::String &&s) { return hub<char>::ps(std::move(s)); }
 
             inline std::shared_ptr<psct<std::array<char, 2>>> ps(const char &c, const char &d) { return hub<char>::ps(c, d); }
 
@@ -205,7 +223,7 @@ namespace regular {
 
             inline std::shared_ptr<plct> plc(std::vector<typename plt::Item> &&l) { return hub<char>::plc(std::move(l)); }
 
-            inline std::shared_ptr<plct> plc(const typename Traits<char>::String &s) { return hub<char>::plc(s); }
+            inline std::shared_ptr<plct> plcs(const typename Traits<char>::String &s) { return hub<char>::plcs(s); }
 
             inline std::shared_ptr<pkt> pk(const std::shared_ptr<pt> &p) { return hub<char>::pk(p); }
 
@@ -213,7 +231,7 @@ namespace regular {
 
             inline std::shared_ptr<pqt> pq(const std::shared_ptr<pt> &p) { return hub<char>::pq(p); }
 
-            inline std::shared_ptr<pct> pc(const std::shared_ptr<pt> &base, const TYPE(pct::process) &process) { return hub<char>::pc(base, process); }
+//            inline std::shared_ptr<pct> pc(const std::shared_ptr<pt> &base, const TYPE(pct::process) &process) { return hub<char>::pc(base, process); }
         }
         namespace wide {
             using wrt=hub<wchar_t>::rt;
@@ -234,20 +252,23 @@ namespace regular {
             using wpkt=hub<wchar_t>::pkt;
             using wppt=hub<wchar_t>::ppt;
             using wpqt=hub<wchar_t>::pqt;
-            using wpct=hub<wchar_t>::pct;
+//            using wpct=hub<wchar_t>::pct;
 
-            inline std::shared_ptr<wpot> wpo() { return hub<wchar_t>::po(); }
+            const auto wpo = hub<wchar_t>::po();
 
             inline std::shared_ptr<wpst> wps(const std::function<bool(const wchar_t &)> &f) { return hub<wchar_t>::ps(f); }
 
             template<typename Context>
             inline std::shared_ptr<wpsct<Context>> wps(Context &&c, const std::function<bool(const Context &, const wchar_t &)> &f) { return hub<wchar_t>::ps(c, f); }
 
-            inline std::shared_ptr<wpst> wps() { return hub<wchar_t>::ps(); }
+            const auto wpsa = hub<wchar_t>::psa();
 
             inline std::shared_ptr<wpsct<wchar_t>> wps(const wchar_t &c) { return hub<wchar_t>::ps(c); }
 
-            inline std::shared_ptr<wpsct<typename Traits<wchar_t>::String>> wps(typename Traits<wchar_t>::String &&s) { return hub<wchar_t>::ps(std::move(s)); }
+            inline std::shared_ptr<wpsct<std::unordered_map<
+                    wchar_t,
+                    nullptr_t
+            >>> wps(typename Traits<wchar_t>::String &&s) { return hub<wchar_t>::ps(std::move(s)); }
 
             inline std::shared_ptr<wpsct<std::array<wchar_t, 2>>> wps(const wchar_t &c, const wchar_t &d) { return hub<wchar_t>::ps(c, d); }
 
@@ -268,7 +289,7 @@ namespace regular {
 
             inline std::shared_ptr<wplct> wplc(std::vector<typename wplt::Item> &&l) { return hub<wchar_t>::plc(std::move(l)); }
 
-            inline std::shared_ptr<wplct> wplc(const typename Traits<wchar_t>::String &s) { return hub<wchar_t>::plc(s); }
+            inline std::shared_ptr<wplct> wplcs(const typename Traits<wchar_t>::String &s) { return hub<wchar_t>::plcs(s); }
 
             inline std::shared_ptr<wpkt> wpk(const std::shared_ptr<wpt> &p) { return hub<wchar_t>::pk(p); }
 
@@ -276,7 +297,7 @@ namespace regular {
 
             inline std::shared_ptr<wpqt> wpq(const std::shared_ptr<wpt> &p) { return hub<wchar_t>::pq(p); }
 
-            inline std::shared_ptr<wpct> wpc(const std::shared_ptr<wpt> &base, const TYPE(wpct::process) &process) { return hub<wchar_t>::pc(base, process); }
+//            inline std::shared_ptr<wpct> wpc(const std::shared_ptr<wpt> &base, const TYPE(wpct::process) &process) { return hub<wchar_t>::pc(base, process); }
         }
     }
 }
