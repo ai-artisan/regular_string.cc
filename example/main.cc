@@ -1,4 +1,4 @@
-//#include <iostream>
+#include <iostream>
 //#include <fstream>
 //#include <locale>
 //#include <codecvt>
@@ -17,13 +17,13 @@ int main(int argc, char *argv[]) {
 //        std::cout << m.record->string() << '\n';
 //    }
 
-//    {
-//        using namespace regular::shortcut::narrow;
-//        auto p = p_oom(p_digit);
-//        auto[b, r] = p->adapt("1234aas");
-//        std::cout << b << '\n';
-//        std::cout << r->string() << '\n';
-//    }
+    {
+        using namespace regular::shortcut::narrow;
+        auto p = p_oom(p_dgt);
+        auto[b, r] = p->adapt("1234aas");
+        std::cout << b << '\n';
+        std::cout << r->string() << '\n';
+    }
 
 
 //    using namespace regular::shortcut::wide;

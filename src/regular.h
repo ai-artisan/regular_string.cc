@@ -27,8 +27,6 @@ namespace regular {
         static inline String string(const std::string &s) {
             return s;
         }
-
-
     };
 
     template<>
