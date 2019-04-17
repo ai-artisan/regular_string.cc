@@ -3,4 +3,5 @@ project(regular_cc)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(regular_cc example/main.cc)
+add_executable(boson-convert samples/boson-convert/main.cc)
+add_executable(pacman-history samples/pacman-history/main.cc)
