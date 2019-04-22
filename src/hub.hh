@@ -36,7 +36,8 @@ namespace regular {
         }
 
         template<typename Context>
-        static inline std::shared_ptr<psct<Context>> ps(Context &&context, const std::function<bool(const Context &, const Character &)> &depict) {
+        static inline std::shared_ptr<psct<Context>>
+        ps(Context &&context, const std::function<bool(const Context &, const Character &)> &depict) {
             return std::make_shared<psct<Context>>(std::forward<Context>(context), depict);
         }
 
@@ -47,9 +48,10 @@ namespace regular {
         }
 
         static inline std::shared_ptr<psct<Character>> ps(const Character &c0) {
-            return std::make_shared<psct<Character>>(Character(c0), [](const Character &c0, const Character &c) -> bool {
-                return c == c0;
-            });
+            return std::make_shared<psct<Character>>(Character(c0),
+                                                     [](const Character &c0, const Character &c) -> bool {
+                                                         return c == c0;
+                                                     });
         }
 
         static std::shared_ptr<psct<std::unordered_map<
@@ -78,35 +80,46 @@ namespace regular {
         }
 
         static inline std::shared_ptr<psct<std::array<Character, 2>>> ps(const Character &inf, const Character &sup) {
-            return std::make_shared<psct<std::array<Character, 2>>>(std::array{inf, sup}, [&](const std::array<Character, 2> &interval, const Character &c) -> bool {
-                return interval[0] <= c && c <= interval[1];
-            });
+            return std::make_shared<psct<std::array<Character, 2>>>(std::array{inf, sup},
+                                                                    [&](const std::array<Character, 2> &interval,
+                                                                        const Character &c) -> bool {
+                                                                        return interval[0] <= c && c <= interval[1];
+                                                                    });
         }
 
-        static std::shared_ptr<psct<std::vector<std::shared_ptr<pst>>>> psu(std::vector<std::shared_ptr<pst>> &&vector) {
-            return std::make_shared<psct<std::vector<std::shared_ptr<pst>>>>(std::move(vector), [&](const std::vector<std::shared_ptr<pst>> &vector, const Character &c) -> bool {
-                for (auto i = vector.cbegin(); i != vector.cend(); ({
-                    if ((*i)->describe(c)) return true;
-                    i++;
-                }));
-                return false;
-            });
+        static std::shared_ptr<psct<std::vector<std::shared_ptr<pst>>>>
+        psu(std::vector<std::shared_ptr<pst>> &&vector) {
+            return std::make_shared<psct<std::vector<std::shared_ptr<pst>>>>(std::move(vector),
+                                                                             [&](const std::vector<std::shared_ptr<pst>> &vector,
+                                                                                 const Character &c) -> bool {
+                                                                                 for (auto i = vector.cbegin();
+                                                                                      i != vector.cend(); ({
+                                                                                     if ((*i)->describe(c)) return true;
+                                                                                     i++;
+                                                                                 }));
+                                                                                 return false;
+                                                                             });
         }
 
-        static std::shared_ptr<psct<std::vector<std::shared_ptr<pst>>>> psi(std::vector<std::shared_ptr<pst>> &&vector) {
-            return std::make_shared<psct<std::vector<std::shared_ptr<pst>>>>(std::move(vector), [&](const std::vector<std::shared_ptr<pst>> &vector, const Character &c) -> bool {
-                for (auto i = vector.cbegin(); i != vector.cend(); ({
-                    if (!(*i)->describe(c)) return false;
-                    i++;
-                }));
-                return true;
-            });
+        static std::shared_ptr<psct<std::vector<std::shared_ptr<pst>>>>
+        psi(std::vector<std::shared_ptr<pst>> &&vector) {
+            return std::make_shared<psct<std::vector<std::shared_ptr<pst>>>>(std::move(vector),
+                                                                             [&](const std::vector<std::shared_ptr<pst>> &vector,
+                                                                                 const Character &c) -> bool {
+                                                                                 for (auto i = vector.cbegin();
+                                                                                      i != vector.cend(); ({
+                                                                                     if (!(*i)->describe(c))
+                                                                                         return false;
+                                                                                     i++;
+                                                                                 }));
+                                                                                 return true;
+                                                                             });
         }
 
         static std::shared_ptr<psct<std::pair<
                 std::vector<std::shared_ptr<pst>>,
                 bool
-        >>> psd(std::vector<std::shared_ptr<pst>> &&vector, const bool &sign) {
+        >>> psd(std::vector<std::shared_ptr<pst>> &&vector, const bool &sign = true) {
             return std::make_shared<psct<std::pair<
                     std::vector<std::shared_ptr<pst>>,
                     bool
@@ -132,7 +145,7 @@ namespace regular {
             return std::make_shared<plit>(std::move(vector));
         }
 
-        static inline std::shared_ptr<pldt> pld(std::vector<typename plt::Item> &&vector, const bool &sign) {
+        static inline std::shared_ptr<pldt> pld(std::vector<typename plt::Item> &&vector, const bool &sign = true) {
             return std::make_shared<pldt>(std::move(vector), sign);
         }
 
@@ -193,7 +206,8 @@ namespace regular {
             inline std::shared_ptr<pst> ps(const std::function<bool(const char &)> &f) { return hub<char>::ps(f); }
 
             template<typename Context>
-            inline std::shared_ptr<psct<Context>> ps(Context &&c, const std::function<bool(const Context &, const char &)> &f) { return hub<char>::ps(c, f); }
+            inline std::shared_ptr<psct<Context>>
+            ps(Context &&c, const std::function<bool(const Context &, const char &)> &f) { return hub<char>::ps(c, f); }
 
             const auto psa = hub<char>::psa();
 
@@ -204,24 +218,38 @@ namespace regular {
                     nullptr_t
             >>> ps(typename Traits<char>::String &&s) { return hub<char>::ps(std::move(s)); }
 
-            inline std::shared_ptr<psct<std::array<char, 2>>> ps(const char &c, const char &d) { return hub<char>::ps(c, d); }
+            inline std::shared_ptr<psct<std::array<char, 2>>> ps(const char &c, const char &d) {
+                return hub<char>::ps(c, d);
+            }
 
-            inline std::shared_ptr<psct<std::vector<std::shared_ptr<pst>>>> psu(std::vector<std::shared_ptr<pst>> &&l) { return hub<char>::psu(std::move(l)); }
+            inline std::shared_ptr<psct<std::vector<std::shared_ptr<pst>>>>
+            psu(std::vector<std::shared_ptr<pst>> &&l) { return hub<char>::psu(std::move(l)); }
 
-            inline std::shared_ptr<psct<std::vector<std::shared_ptr<pst>>>> psi(std::vector<std::shared_ptr<pst>> &&l) { return hub<char>::psi(std::move(l)); }
+            inline std::shared_ptr<psct<std::vector<std::shared_ptr<pst>>>>
+            psi(std::vector<std::shared_ptr<pst>> &&l) { return hub<char>::psi(std::move(l)); }
 
             inline std::shared_ptr<psct<std::pair<
                     std::vector<std::shared_ptr<pst>>,
                     bool
-            >>> psd(std::vector<std::shared_ptr<pst>> &&l, const bool &s = true) { return hub<char>::psd(std::move(l), s); }
+            >>> psd(std::vector<std::shared_ptr<pst>> &&l, const bool &s = true) {
+                return hub<char>::psd(std::move(l), s);
+            }
 
-            inline std::shared_ptr<plut> plu(std::vector<typename plt::Item> &&l) { return hub<char>::plu(std::move(l)); }
+            inline std::shared_ptr<plut> plu(std::vector<typename plt::Item> &&l) {
+                return hub<char>::plu(std::move(l));
+            }
 
-            inline std::shared_ptr<plit> pli(std::vector<typename plt::Item> &&l) { return hub<char>::pli(std::move(l)); }
+            inline std::shared_ptr<plit> pli(std::vector<typename plt::Item> &&l) {
+                return hub<char>::pli(std::move(l));
+            }
 
-            inline std::shared_ptr<pldt> pld(std::vector<typename plt::Item> &&l, const bool &sign) { return hub<char>::pld(std::move(l), sign); }
+            inline std::shared_ptr<pldt> pld(std::vector<typename plt::Item> &&l, const bool &sign = true) {
+                return hub<char>::pld(std::move(l), sign);
+            }
 
-            inline std::shared_ptr<plct> plc(std::vector<typename plt::Item> &&l) { return hub<char>::plc(std::move(l)); }
+            inline std::shared_ptr<plct> plc(std::vector<typename plt::Item> &&l) {
+                return hub<char>::plc(std::move(l));
+            }
 
             inline std::shared_ptr<plct> plcs(const typename Traits<char>::String &s) { return hub<char>::plcs(s); }
 
@@ -256,10 +284,15 @@ namespace regular {
 
             const auto wpo = hub<wchar_t>::po();
 
-            inline std::shared_ptr<wpst> wps(const std::function<bool(const wchar_t &)> &f) { return hub<wchar_t>::ps(f); }
+            inline std::shared_ptr<wpst> wps(const std::function<bool(const wchar_t &)> &f) {
+                return hub<wchar_t>::ps(f);
+            }
 
             template<typename Context>
-            inline std::shared_ptr<wpsct<Context>> wps(Context &&c, const std::function<bool(const Context &, const wchar_t &)> &f) { return hub<wchar_t>::ps(c, f); }
+            inline std::shared_ptr<wpsct<Context>>
+            wps(Context &&c, const std::function<bool(const Context &, const wchar_t &)> &f) {
+                return hub<wchar_t>::ps(c, f);
+            }
 
             const auto wpsa = hub<wchar_t>::psa();
 
@@ -270,26 +303,41 @@ namespace regular {
                     nullptr_t
             >>> wps(typename Traits<wchar_t>::String &&s) { return hub<wchar_t>::ps(std::move(s)); }
 
-            inline std::shared_ptr<wpsct<std::array<wchar_t, 2>>> wps(const wchar_t &c, const wchar_t &d) { return hub<wchar_t>::ps(c, d); }
+            inline std::shared_ptr<wpsct<std::array<wchar_t, 2>>>
+            wps(const wchar_t &c, const wchar_t &d) { return hub<wchar_t>::ps(c, d); }
 
-            inline std::shared_ptr<wpsct<std::vector<std::shared_ptr<wpst>>>> wpsu(std::vector<std::shared_ptr<wpst>> &&l) { return hub<wchar_t>::psu(std::move(l)); }
+            inline std::shared_ptr<wpsct<std::vector<std::shared_ptr<wpst>>>>
+            wpsu(std::vector<std::shared_ptr<wpst>> &&l) { return hub<wchar_t>::psu(std::move(l)); }
 
-            inline std::shared_ptr<wpsct<std::vector<std::shared_ptr<wpst>>>> wpsi(std::vector<std::shared_ptr<wpst>> &&l) { return hub<wchar_t>::psi(std::move(l)); }
+            inline std::shared_ptr<wpsct<std::vector<std::shared_ptr<wpst>>>>
+            wpsi(std::vector<std::shared_ptr<wpst>> &&l) { return hub<wchar_t>::psi(std::move(l)); }
 
             inline std::shared_ptr<wpsct<std::pair<
                     std::vector<std::shared_ptr<wpst>>,
                     bool
-            >>> wpsd(std::vector<std::shared_ptr<wpst>> &&l, const bool &s = true) { return hub<wchar_t>::psd(std::move(l), s); }
+            >>> wpsd(std::vector<std::shared_ptr<wpst>> &&l, const bool &s = true) {
+                return hub<wchar_t>::psd(std::move(l), s);
+            }
 
-            inline std::shared_ptr<wplut> wplu(std::vector<typename wplt::Item> &&l) { return hub<wchar_t>::plu(std::move(l)); }
+            inline std::shared_ptr<wplut> wplu(std::vector<typename wplt::Item> &&l) {
+                return hub<wchar_t>::plu(std::move(l));
+            }
 
-            inline std::shared_ptr<wplit> wpli(std::vector<typename wplt::Item> &&l) { return hub<wchar_t>::pli(std::move(l)); }
+            inline std::shared_ptr<wplit> wpli(std::vector<typename wplt::Item> &&l) {
+                return hub<wchar_t>::pli(std::move(l));
+            }
 
-            inline std::shared_ptr<wpldt> wpld(std::vector<typename wplt::Item> &&l, const bool &sign) { return hub<wchar_t>::pld(std::move(l), sign); }
+            inline std::shared_ptr<wpldt> wpld(std::vector<typename wplt::Item> &&l, const bool &sign = true) {
+                return hub<wchar_t>::pld(std::move(l), sign);
+            }
 
-            inline std::shared_ptr<wplct> wplc(std::vector<typename wplt::Item> &&l) { return hub<wchar_t>::plc(std::move(l)); }
+            inline std::shared_ptr<wplct> wplc(std::vector<typename wplt::Item> &&l) {
+                return hub<wchar_t>::plc(std::move(l));
+            }
 
-            inline std::shared_ptr<wplct> wplcs(const typename Traits<wchar_t>::String &s) { return hub<wchar_t>::plcs(s); }
+            inline std::shared_ptr<wplct> wplcs(const typename Traits<wchar_t>::String &s) {
+                return hub<wchar_t>::plcs(s);
+            }
 
             inline std::shared_ptr<wpkt> wpk(const std::shared_ptr<wpt> &p) { return hub<wchar_t>::pk(p); }
 
