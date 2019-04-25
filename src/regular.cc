@@ -51,7 +51,8 @@ namespace regular {
         namespace singleton {
             template<typename Character, typename Context>
             Closure<Character, Context>::Closure(Context &&context, const TYPE(depict) &depict):
-                    Singleton<Character>([&](const Character &c) { return this->depict(this->context, c); }), context(std::move(context)), depict(depict) {}
+                    Singleton<Character>([&](const Character &c) { return this->depict(this->context, c); }),
+                    context(std::move(context)), depict(depict) {}
         }
 
         namespace linear {
@@ -65,7 +66,7 @@ namespace regular {
                 typename Traits<Character>::String key(0, 0);
                 std::size_t index = 0;
                 std::shared_ptr<Record<Character>> record = nullptr;
-                for (auto i = this->linear.cbegin(); i != this->linear.cend(); ({
+                for (auto i = this->linear.cbegin(); i < this->linear.cend(); ({
                     auto matched = i->value->match(begin, end);
                     if (matched.success) {
                         success = true;
@@ -96,25 +97,17 @@ namespace regular {
                 auto end1 = begin;
                 std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> map;
                 std::vector<std::shared_ptr<Record<Character>>> vector(this->linear.size(), nullptr);
-                if (!this->linear.empty()) {
-                    auto matched = this->linear.front().value->match(begin, end);
-                    map[this->linear.front().key] = matched.record;
-                    vector.front() = matched.record;
-                    if (matched.success) {
+                for (auto i = this->linear.cbegin(); i < this->linear.cend(); ({
+                    auto matched = i->value->match(begin, end);
+                    map[i->key] = matched.record;
+                    vector[i - this->linear.cbegin()] = matched.record;
+                    if (matched.success) i++;
+                    else {
+                        success = false;
                         end1 = matched.record->end;
-                        for (auto i = std::next(this->linear.cbegin()); i != this->linear.cend(); ({
-                            auto matched1 = i->value->match(begin, end1);
-                            map[i->key] = matched1.record;
-                            vector[i - this->linear.cbegin()] = matched1.record;
-                            if (matched1.success && matched1.record->end == end1) i++;
-                            else {
-                                success = false;
-                                end1 = matched1.record->end;
-                                i = this->linear.cend();
-                            }
-                        }));
-                    } else success = false;
-                }
+                        i = this->linear.cend();
+                    }
+                }));
                 return {success, ({
                     auto r = std::make_shared<record::LinearEvery<Character>>();
                     r->begin = begin;
@@ -136,32 +129,17 @@ namespace regular {
                 typename Traits<Character>::String key(0, 0);
                 std::shared_ptr<Record<Character>> record = nullptr;
 
-                if (!this->linear.empty()) {
-                    auto matched = this->linear.front().value->match(begin, end);
-                    end1 = matched.record->end;
-                    if (matched.success) {
-                        for (auto i = this->linear.crbegin(); i != std::prev(this->linear.crend()); ({
-                            auto matched1 = i->value->match(begin, end1);
-                            success = matched1.success && matched1.record->end == end1 && !success;
-                            if (success) {
-                                index = std::size_t(this->linear.crend() - i - 1);
-                                key = i->key;
-                                record = matched1.record;
-                            }
-                            i++;
-                        }));
-                        success ^= true;
-                        if (success) {
-                            index = 0;
-                            key = this->linear.front().key;
-                            record = matched.record;
-                        }
-                    } else {
-                        index = 0;
-                        key = this->linear.front().key;
+                for (auto i = this->linear.crbegin(); i < this->linear.crend(); ({
+                    auto matched = i->value->match(begin, end);
+                    success = matched.success && !success;
+                    if (success) {
+                        end1 = matched.record->end;
+                        index = std::size_t(this->linear.crend() - i - 1);
+                        key = i->key;
                         record = matched.record;
                     }
-                }
+                    i++;
+                }));
 
                 return {!(success xor sign), ({
                     auto r = std::make_shared<record::LinearSome<Character>>();
@@ -183,7 +161,7 @@ namespace regular {
                 auto end1 = begin;
                 std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> map;
                 std::vector<std::shared_ptr<Record<Character>>> vector(this->linear.size(), nullptr);
-                for (auto i = this->linear.cbegin(); i != this->linear.cend(); ({
+                for (auto i = this->linear.cbegin(); i < this->linear.cend(); ({
                     auto matched = i->value->match(end1, end);
                     end1 = matched.record->end;
                     map[i->key] = matched.record;
