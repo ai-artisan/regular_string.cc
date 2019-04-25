@@ -81,14 +81,26 @@ namespace regular {
             std::shared_ptr<Record<Character>> record;
         };
 
-        inline typename Pattern<Character>::Matched adapt(const typename Traits<Character>::String &s) const {
-            return match(s.cbegin(), s.cend());
-        }
-
         virtual typename Pattern<Character>::Matched match(
                 const typename Traits<Character>::String::const_iterator &,
                 const typename Traits<Character>::String::const_iterator &
         ) const = 0;
+
+        inline typename Pattern<Character>::Matched match(const typename Traits<Character>::String &s) const {
+            return match(s.cbegin(), s.cend());
+        }
+
+        inline typename Pattern<Character>::Matched adapt(
+                const typename Traits<Character>::String::const_iterator &begin,
+                const typename Traits<Character>::String::const_iterator &end
+        ) const {
+            auto[b, r]=match(begin, end);
+            return {b && r->end == end, r};
+        }
+
+        inline typename Pattern<Character>::Matched adapt(const typename Traits<Character>::String &s) const {
+            return adapt(s.cbegin(), s.cend());
+        }
 
         template<typename Derived>
         std::shared_ptr<Derived> as() const;
@@ -156,7 +168,8 @@ namespace regular {
 
             template<typename Character>
             struct Intersection : Linear<Character> {
-                explicit Intersection(TYPE(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
+                explicit Intersection(TYPE(Linear<Character>::linear) &&linear) : Linear<Character>(
+                        std::move(linear)) {}
 
                 typename Pattern<Character>::Matched match(
                         const typename Traits<Character>::String::const_iterator &,
@@ -179,7 +192,8 @@ namespace regular {
 
             template<typename Character>
             struct Concatenation : Linear<Character> {
-                explicit Concatenation(TYPE(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
+                explicit Concatenation(TYPE(Linear<Character>::linear) &&linear) : Linear<Character>(
+                        std::move(linear)) {}
 
                 typename Pattern<Character>::Matched match(
                         const typename Traits<Character>::String::const_iterator &,
@@ -189,7 +203,7 @@ namespace regular {
         }
 
         template<typename Character>
-        struct KleeneClosure : Pattern<Character> {
+        struct KleeneClosure : public Pattern<Character> {
             std::shared_ptr<Pattern<Character>> item;
 
             explicit KleeneClosure(const TYPE(item) &item) : item(item) {}

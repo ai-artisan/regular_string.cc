@@ -9,7 +9,7 @@ int main() {
 
     auto p = pk(pld({plu({p0, psa}), p0}));
 
-    auto[b, r]=p->adapt("1234asasdf");
+    auto[b, r]=p->as<pt>()->match("1234asasdf");
 
     std::cout << b << '\n'
               << r->string() << '\n';
