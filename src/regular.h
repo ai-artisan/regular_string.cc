@@ -236,9 +236,6 @@ namespace regular {
             ) const final;
         };
 
-        template<typename Character>
-        struct Collapsed : Pattern<Character>{};
-
 //        template<typename Character>
 //        struct Custom : Pattern<Character> {
 //            const std::shared_ptr<Pattern<Character>> base;
