@@ -30,6 +30,24 @@ namespace regular {
         static inline std::shared_ptr<typename hub::pst> ps_ws() {
             return hub::ps(Traits<Character>::string(" \f\n\r\t\v"));
         }
+
+        static std::list<typename Traits<Character>::String> split(const typename Traits<Character>::String &s, const std::shared_ptr<typename hub::pt> &p_sep) {
+            std::list<typename Traits<Character>::String> l;
+
+            std::shared_ptr<typename hub::pt>
+                    p_seg = hub::pq(hub::pk(hub::pld({hub::psa(), p_sep}))),
+                    p = hub::plc({p_seg, hub::pk(hub::plc({hub::pq(p_sep), p_seg}))});
+
+            auto r = p->adapt(s).record->template as<typename hub::rlet>();
+            l.emplace_back(r->vector[0]->string());
+            auto r_rest = r->vector[1]->template as<typename hub::rkt>();
+            for (auto i = r_rest->list.cbegin(); i != r_rest->list.cend(); ({
+                l.emplace_back((*i)->template as<typename hub::rlet>()->vector[1]->string());
+                i++;
+            }));
+
+            return l;
+        }
     };
 
     namespace shortcut {
@@ -47,6 +65,10 @@ namespace regular {
             const auto ps_abdu = compatible<char>::ps_abdu();
 
             const auto ps_ws = compatible<char>::ps_ws();
+
+            inline std::list<Traits<char>::String> split(const Traits<char>::String &s, const std::shared_ptr<pt> &p_sep) {
+                return compatible<char>::split(s, p_sep);
+            }
         }
         namespace wide {
             inline std::shared_ptr<wplct> wplc_om(const std::shared_ptr<wpt> &p) {
@@ -62,6 +84,10 @@ namespace regular {
             const auto wps_abdu = compatible<wchar_t>::ps_abdu();
 
             const auto wps_ws = compatible<wchar_t>::ps_ws();
+
+            inline std::list<Traits<wchar_t>::String> split(const Traits<wchar_t>::String &s, const std::shared_ptr<wpt> &p_sep) {
+                return compatible<wchar_t>::split(s, p_sep);
+            }
         }
     }
 }
