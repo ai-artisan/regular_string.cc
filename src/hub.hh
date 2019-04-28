@@ -25,7 +25,6 @@ namespace regular {
         using pkt=pattern::KleeneClosure<Character>;
         using ppt=pattern::Placeholder<Character>;
         using pqt=pattern::Collapsed<Character>;
-//        using pct=pattern::Custom<Character>;
 
         static inline std::shared_ptr<pot> po() {
             return std::make_shared<pot>();
