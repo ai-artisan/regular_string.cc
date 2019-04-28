@@ -173,10 +173,6 @@ namespace regular {
         static inline std::shared_ptr<pqt> pq(const std::shared_ptr<pt> &p) {
             return std::make_shared<pqt>(p);
         }
-
-//        static inline std::shared_ptr<pct> pc(const std::shared_ptr<pt> &base, const TYPE(pct::process) &process) {
-//            return std::make_shared<pct>(base, process);
-//        }
     };
 
     namespace shortcut {
@@ -199,7 +195,6 @@ namespace regular {
             using pkt=hub<char>::pkt;
             using ppt=hub<char>::ppt;
             using pqt=hub<char>::pqt;
-//            using pct=hub<char>::pct;
 
             const auto po = hub<char>::po();
 
@@ -258,8 +253,6 @@ namespace regular {
             inline std::shared_ptr<ppt> pp() { return hub<char>::pp(); }
 
             inline std::shared_ptr<pqt> pq(const std::shared_ptr<pt> &p) { return hub<char>::pq(p); }
-
-//            inline std::shared_ptr<pct> pc(const std::shared_ptr<pt> &base, const TYPE(pct::process) &process) { return hub<char>::pc(base, process); }
         }
         namespace wide {
             using wrt=hub<wchar_t>::rt;
@@ -280,7 +273,6 @@ namespace regular {
             using wpkt=hub<wchar_t>::pkt;
             using wppt=hub<wchar_t>::ppt;
             using wpqt=hub<wchar_t>::pqt;
-//            using wpct=hub<wchar_t>::pct;
 
             const auto wpo = hub<wchar_t>::po();
 
@@ -344,8 +336,6 @@ namespace regular {
             inline std::shared_ptr<wppt> wpp() { return hub<wchar_t>::pp(); }
 
             inline std::shared_ptr<wpqt> wpq(const std::shared_ptr<wpt> &p) { return hub<wchar_t>::pq(p); }
-
-//            inline std::shared_ptr<wpct> wpc(const std::shared_ptr<wpt> &base, const TYPE(wpct::process) &process) { return hub<wchar_t>::pc(base, process); }
         }
     }
 }

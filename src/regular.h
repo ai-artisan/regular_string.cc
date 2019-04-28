@@ -235,19 +235,5 @@ namespace regular {
                     const typename Traits<Character>::String::const_iterator &
             ) const final;
         };
-
-//        template<typename Character>
-//        struct Custom : Pattern<Character> {
-//            const std::shared_ptr<Pattern<Character>> base;
-//            const std::function<std::shared_ptr<Record<Character>>(typename Custom::Matched &)> process;
-//
-//            Custom(const TYPE(base) &base, const TYPE(process) &process) :
-//                    base(base), process(process) {}
-//
-//            typename Pattern<Character>::Matched match(
-//                    const typename Traits<Character>::String::const_iterator &,
-//                    const typename Traits<Character>::String::const_iterator &
-//            ) const final;
-//        };
     }
 }

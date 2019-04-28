@@ -230,15 +230,6 @@ namespace regular {
                 r;
             })};
         }
-
-//        template<typename Character>
-//        inline typename Pattern<Character>::Matched Custom<Character>::match(
-//                const typename Traits<Character>::String::const_iterator &begin,
-//                const typename Traits<Character>::String::const_iterator &end
-//        ) const {
-//            auto matched = base->match(begin, end);
-//            return {matched.success, process(matched)};
-//        }
     }
 }
 
