@@ -2,7 +2,7 @@
 
 #include "regular.h"
 
-namespace regular {
+namespace reg {
     template<typename Character>
     struct hub {
         ~hub() = delete;

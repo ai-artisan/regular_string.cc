@@ -12,7 +12,7 @@
 
 #define TYPE(X) typename std::remove_const<decltype(X)>::type
 
-namespace regular {
+namespace reg {
     template<typename...>
     struct Traits {
         ~Traits() = delete;

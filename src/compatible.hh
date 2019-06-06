@@ -2,12 +2,12 @@
 
 #include "hub.hh"
 
-namespace regular {
+namespace reg {
     template<typename Character>
     struct compatible {
         ~compatible() = delete;
 
-        using hub=regular::hub<Character>;
+        using hub=reg::hub<Character>;
 
         static inline std::shared_ptr<typename hub::plct> plc_om(const std::shared_ptr<typename hub::pt> &p) {
             return hub::plc({{Traits<Character>::string("First"), p},

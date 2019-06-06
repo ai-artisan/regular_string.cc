@@ -1,6 +1,6 @@
 #include "regular.h"
 
-namespace regular {
+namespace reg {
     template<typename Character>
     template<typename Derived>
     inline std::shared_ptr<Derived> Record<Character>::as() const {

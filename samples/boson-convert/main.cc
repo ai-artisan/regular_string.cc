@@ -5,7 +5,7 @@
 #include <sstream>
 
 int main(int argc, char *argv[]) {
-    using namespace regular::shortcut::wide;
+    using namespace reg::shortcut::wide;
 
     /**
      * 手动预处理
@@ -17,8 +17,8 @@ int main(int argc, char *argv[]) {
     /**
      * 读取原始数据
      */
-    std::ifstream ifs(argv[1]);
     std::stringstream ss;
+    std::ifstream ifs(argv[1]);
     ss << ifs.rdbuf();
     ifs.close();
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> convert;

@@ -3,7 +3,7 @@
 #include <iostream>
 
 int main() {
-    using namespace regular::shortcut::narrow;
+    using namespace reg::shortcut::narrow;
 
     auto p0 = plcs("asdf");
 
