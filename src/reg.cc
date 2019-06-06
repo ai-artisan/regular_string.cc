@@ -1,4 +1,4 @@
-#include "regular.h"
+#include "reg.h"
 
 namespace reg {
     template<typename Character>

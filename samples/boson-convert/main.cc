@@ -1,4 +1,4 @@
-#include "../../regular.hh"
+#include "../../include.hh"
 
 #include <iostream>
 #include <fstream>

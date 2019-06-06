@@ -1,8 +1,8 @@
 #pragma once
 
-#include "src/regular.h"
+#include "src/reg.h"
 
 #include "src/hub.hh"
 #include "src/compatible.hh"
 
-#include "src/regular.cc"
+#include "src/reg.cc"
