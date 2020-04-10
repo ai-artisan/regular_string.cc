@@ -55,15 +55,15 @@ namespace reg {
 
         static std::shared_ptr<psct<std::unordered_map<
                 Character,
-                nullptr_t
+                std::nullptr_t
         >>> ps(typename Traits<Character>::String &&s) {
             return std::make_shared<psct<std::unordered_map<
                     Character,
-                    nullptr_t
+                    std::nullptr_t
             >>>(({
                 std::unordered_map<
                         Character,
-                        nullptr_t
+                        std::nullptr_t
                 > m;
                 for (auto i = s.cbegin(); i != s.cend(); ({
                     m[*i] = nullptr;
@@ -72,7 +72,7 @@ namespace reg {
                 m;
             }), [&](const std::unordered_map<
                     Character,
-                    nullptr_t
+                    std::nullptr_t
             > &m, const Character &c) -> bool {
                 return m.find(c) != m.cend();
             });
@@ -209,7 +209,7 @@ namespace reg {
 
             inline std::shared_ptr<psct<std::unordered_map<
                     char,
-                    nullptr_t
+                    std::nullptr_t
             >>> ps(typename Traits<char>::String &&s) { return hub<char>::ps(std::move(s)); }
 
             inline std::shared_ptr<psct<std::array<char, 2>>> ps(const char &c, const char &d) {
@@ -291,7 +291,7 @@ namespace reg {
 
             inline std::shared_ptr<wpsct<std::unordered_map<
                     wchar_t,
-                    nullptr_t
+                    std::nullptr_t
             >>> wps(typename Traits<wchar_t>::String &&s) { return hub<wchar_t>::ps(std::move(s)); }
 
             inline std::shared_ptr<wpsct<std::array<wchar_t, 2>>>

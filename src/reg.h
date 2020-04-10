@@ -144,7 +144,7 @@ namespace reg {
                 std::shared_ptr<Pattern<Character>> value;
 
                 template<typename Value>
-                /*explicit*/ Item(Value &&value) : key(0, 0), value(std::forward<Value>(value)) {}
+                /*explicit*/ Item(Value &&value) : key(), value(std::forward<Value>(value)) {}
 
                 Item(TYPE(key) &&key, const TYPE(value) &value) :
                         key(std::move(key)), value(value) {}

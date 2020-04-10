@@ -63,7 +63,7 @@ namespace reg {
             ) const {
                 bool success = false;
                 auto end1 = begin;
-                typename Traits<Character>::String key(0, 0);
+                typename Traits<Character>::String key;
                 std::size_t index = 0;
                 std::shared_ptr<Record<Character>> record = nullptr;
                 for (auto i = this->linear.cbegin(); i < this->linear.cend(); ({
@@ -126,7 +126,7 @@ namespace reg {
                 bool success = false;
                 auto end1 = begin;
                 std::size_t index = 0;
-                typename Traits<Character>::String key(0, 0);
+                typename Traits<Character>::String key;
                 std::shared_ptr<Record<Character>> record = nullptr;
 
                 for (auto i = this->linear.crbegin(); i < this->linear.crend(); ({
