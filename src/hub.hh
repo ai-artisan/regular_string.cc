@@ -47,30 +47,24 @@ namespace reg {
         }
 
         static inline std::shared_ptr<psct<Character>> ps(const Character &c0) {
-            return std::make_shared<psct<Character>>(Character(c0),
-                                                     [](const Character &c0, const Character &c) -> bool {
-                                                         return c == c0;
-                                                     });
+            return std::make_shared<psct<Character>>(
+                    Character(c0),
+                    [](const Character &c0, const Character &c) -> bool {
+                        return c == c0;
+                    }
+            );
         }
 
         static std::shared_ptr<psct<std::unordered_map<
                 Character,
                 std::nullptr_t
         >>> ps(typename Traits<Character>::String &&s) {
+            std::unordered_map<Character, std::nullptr_t> m;
+            for (auto i = s.cbegin(); i != s.cend(); i++) m[*i] = nullptr;
             return std::make_shared<psct<std::unordered_map<
                     Character,
                     std::nullptr_t
-            >>>(({
-                std::unordered_map<
-                        Character,
-                        std::nullptr_t
-                > m;
-                for (auto i = s.cbegin(); i != s.cend(); ({
-                    m[*i] = nullptr;
-                    i++;
-                }));
-                m;
-            }), [&](const std::unordered_map<
+            >>>(std::move(m), [&](const std::unordered_map<
                     Character,
                     std::nullptr_t
             > &m, const Character &c) -> bool {
@@ -79,40 +73,36 @@ namespace reg {
         }
 
         static inline std::shared_ptr<psct<std::array<Character, 2>>> ps(const Character &inf, const Character &sup) {
-            return std::make_shared<psct<std::array<Character, 2>>>(std::array{inf, sup},
-                                                                    [&](const std::array<Character, 2> &interval,
-                                                                        const Character &c) -> bool {
-                                                                        return interval[0] <= c && c <= interval[1];
-                                                                    });
+            return std::make_shared<psct<std::array<Character, 2>>>(
+                    std::array{inf, sup},
+                    [&](const std::array<Character, 2> &interval, const Character &c) -> bool {
+                        return interval[0] <= c && c <= interval[1];
+                    }
+            );
         }
 
         static std::shared_ptr<psct<std::vector<std::shared_ptr<pst>>>>
         psu(std::vector<std::shared_ptr<pst>> &&vector) {
-            return std::make_shared<psct<std::vector<std::shared_ptr<pst>>>>(std::move(vector),
-                                                                             [&](const std::vector<std::shared_ptr<pst>> &vector,
-                                                                                 const Character &c) -> bool {
-                                                                                 for (auto i = vector.cbegin();
-                                                                                      i != vector.cend(); ({
-                                                                                     if ((*i)->describe(c)) return true;
-                                                                                     i++;
-                                                                                 }));
-                                                                                 return false;
-                                                                             });
+            return std::make_shared<psct<std::vector<std::shared_ptr<pst>>>>(
+                    std::move(vector),
+                    [&](const std::vector<std::shared_ptr<pst>> &vector, const Character &c) -> bool {
+                        for (auto i = vector.cbegin(); i != vector.cend(); i++)
+                            if ((*i)->describe(c)) return true;
+                        return false;
+                    }
+            );
         }
 
         static std::shared_ptr<psct<std::vector<std::shared_ptr<pst>>>>
         psi(std::vector<std::shared_ptr<pst>> &&vector) {
-            return std::make_shared<psct<std::vector<std::shared_ptr<pst>>>>(std::move(vector),
-                                                                             [&](const std::vector<std::shared_ptr<pst>> &vector,
-                                                                                 const Character &c) -> bool {
-                                                                                 for (auto i = vector.cbegin();
-                                                                                      i != vector.cend(); ({
-                                                                                     if (!(*i)->describe(c))
-                                                                                         return false;
-                                                                                     i++;
-                                                                                 }));
-                                                                                 return true;
-                                                                             });
+            return std::make_shared<psct<std::vector<std::shared_ptr<pst>>>>(
+                    std::move(vector),
+                    [&](const std::vector<std::shared_ptr<pst>> &vector, const Character &c) -> bool {
+                        for (auto i = vector.cbegin(); i != vector.cend(); i++)
+                            if (!(*i)->describe(c)) return false;
+                        return true;
+                    }
+            );
         }
 
         static std::shared_ptr<psct<std::pair<
@@ -128,11 +118,8 @@ namespace reg {
             > &pair, const Character &c) -> bool {
                 auto&[l, s]=pair;
                 bool b = false;
-                for (auto i = l.crbegin(); i != l.crend(); ({
-                    b = (*i)->describe(c) && !b;
-                    i++;
-                }));
-                return !(b xor s);
+                for (auto i = l.crbegin(); i != l.crend(); i++) b = (*i)->describe(c) && !b;
+                return !(b ^ s);
             });
         }
 
@@ -154,10 +141,7 @@ namespace reg {
 
         static std::shared_ptr<plct> plcs(const typename Traits<Character>::String &s) {
             std::vector<typename plt::Item> linear(s.size(), nullptr);
-            for (auto i = s.cbegin(); i != s.cend(); ({
-                linear[i - s.cbegin()] = ps(*i);
-                i++;
-            }));
+            for (auto i = s.cbegin(); i != s.cend(); i++) linear[i - s.cbegin()] = ps(*i);
             return std::make_shared<plct>(std::move(linear));
         }
 

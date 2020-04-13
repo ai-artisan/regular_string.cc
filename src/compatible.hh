@@ -41,10 +41,8 @@ namespace reg {
             auto r = p->adapt(s).record->template as<typename hub::rlet>();
             l.emplace_back(r->vector[0]->string());
             auto r_rest = r->vector[1]->template as<typename hub::rkt>();
-            for (auto i = r_rest->list.cbegin(); i != r_rest->list.cend(); ({
+            for (auto i = r_rest->list.cbegin(); i != r_rest->list.cend(); i++)
                 l.emplace_back((*i)->template as<typename hub::rlet>()->vector[1]->string());
-                i++;
-            }));
 
             return l;
         }

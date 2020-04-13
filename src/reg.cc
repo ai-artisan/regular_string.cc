@@ -19,12 +19,10 @@ namespace reg {
                 const typename Traits<Character>::String::const_iterator &begin,
                 const typename Traits<Character>::String::const_iterator &end
         ) const {
-            return {true, ({
-                auto r = std::make_shared<Record<Character>>();
-                r->begin = begin;
-                r->end = begin;
-                r;
-            })};
+            auto r = std::make_shared<Record<Character>>();
+            r->begin = begin;
+            r->end = begin;
+            return {true, r};
         }
 
         template<typename Character>
@@ -33,19 +31,18 @@ namespace reg {
                 const typename Traits<Character>::String::const_iterator &end
         ) const {
             bool success;
-            auto end1 = (begin == end ? ({
+            typename Traits<Character>::String::const_iterator end1;
+            if (begin == end) {
                 success = false;
-                begin;
-            }) : ({
+                end1 = begin;
+            } else {
                 success = describe(*begin);
-                std::next(begin);
-            }));
-            return {success, ({
-                auto r = std::make_shared<Record<Character>>();
-                r->begin = begin;
-                r->end = end1;
-                r;
-            })};
+                end1 = std::next(begin);
+            }
+            auto r = std::make_shared<Record<Character>>();
+            r->begin = begin;
+            r->end = end1;
+            return {success, r};
         }
 
         namespace singleton {
@@ -66,7 +63,7 @@ namespace reg {
                 typename Traits<Character>::String key;
                 std::size_t index = 0;
                 std::shared_ptr<Record<Character>> record = nullptr;
-                for (auto i = this->linear.cbegin(); i < this->linear.cend(); ({
+                for (auto i = this->linear.cbegin(); i < this->linear.cend();) {
                     auto matched = i->value->match(begin, end);
                     if (matched.success) {
                         success = true;
@@ -79,16 +76,14 @@ namespace reg {
                         if (matched.record->end > end1) end1 = matched.record->end;
                         i++;
                     }
-                }));
-                return {success, ({
-                    auto r = std::make_shared<record::LinearSome<Character>>();
-                    r->begin = begin;
-                    r->end = end1;
-                    r->index = index;
-                    r->key = std::move(key);
-                    r->value = record;
-                    r;
-                })};
+                }
+                auto r = std::make_shared<record::LinearSome<Character>>();
+                r->begin = begin;
+                r->end = end1;
+                r->index = index;
+                r->key = std::move(key);
+                r->value = record;
+                return {success, r};
             }
 
             template<typename Character>
@@ -100,7 +95,7 @@ namespace reg {
                 auto end1 = begin;
                 std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> map;
                 std::vector<std::shared_ptr<Record<Character>>> vector(this->linear.size(), nullptr);
-                for (auto i = this->linear.cbegin(); i < this->linear.cend(); ({
+                for (auto i = this->linear.cbegin(); i < this->linear.cend();) {
                     auto matched = i->value->match(begin, end);
                     map[i->key] = matched.record;
                     vector[i - this->linear.cbegin()] = matched.record;
@@ -110,15 +105,13 @@ namespace reg {
                         end1 = matched.record->end;
                         i = this->linear.cend();
                     }
-                }));
-                return {success, ({
-                    auto r = std::make_shared<record::LinearEvery<Character>>();
-                    r->begin = begin;
-                    r->end = end1;
-                    r->map = std::move(map);
-                    r->vector = std::move(vector);
-                    r;
-                })};
+                }
+                auto r = std::make_shared<record::LinearEvery<Character>>();
+                r->begin = begin;
+                r->end = end1;
+                r->map = std::move(map);
+                r->vector = std::move(vector);
+                return {success, r};
             }
 
             template<typename Character>
@@ -131,8 +124,7 @@ namespace reg {
                 std::size_t index = 0;
                 typename Traits<Character>::String key;
                 std::shared_ptr<Record<Character>> record = nullptr;
-
-                for (auto i = this->linear.crbegin(); i < this->linear.crend(); ({
+                for (auto i = this->linear.crbegin(); i < this->linear.crend(); i++) {
                     auto matched = i->value->match(begin, end);
                     success = matched.success && !success;
                     if (success) {
@@ -141,18 +133,14 @@ namespace reg {
                         key = i->key;
                         record = matched.record;
                     }
-                    i++;
-                }));
-
-                return {!(success xor sign), ({
-                    auto r = std::make_shared<record::LinearSome<Character>>();
-                    r->begin = begin;
-                    r->end = end1;
-                    r->index = index;
-                    r->key = std::move(key);
-                    r->value = record;
-                    r;
-                })};
+                }
+                auto r = std::make_shared<record::LinearSome<Character>>();
+                r->begin = begin;
+                r->end = end1;
+                r->index = index;
+                r->key = std::move(key);
+                r->value = record;
+                return {!(success ^ sign), r};
             }
 
             template<typename Character>
@@ -164,7 +152,7 @@ namespace reg {
                 auto end1 = begin;
                 std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> map;
                 std::vector<std::shared_ptr<Record<Character>>> vector(this->linear.size(), nullptr);
-                for (auto i = this->linear.cbegin(); i < this->linear.cend(); ({
+                for (auto i = this->linear.cbegin(); i < this->linear.cend();) {
                     auto matched = i->value->match(end1, end);
                     end1 = matched.record->end;
                     map[i->key] = matched.record;
@@ -173,15 +161,13 @@ namespace reg {
                         success = false;
                         i = this->linear.cend();
                     } else i++;
-                }));
-                return {success, ({
-                    auto r = std::make_shared<record::LinearEvery<Character >>();
-                    r->begin = begin;
-                    r->end = end1;
-                    r->map = std::move(map);
-                    r->vector = std::move(vector);
-                    r;
-                })};
+                }
+                auto r = std::make_shared<record::LinearEvery<Character >>();
+                r->begin = begin;
+                r->end = end1;
+                r->map = std::move(map);
+                r->vector = std::move(vector);
+                return {success, r};
             }
         }
 
@@ -192,24 +178,21 @@ namespace reg {
         ) const {
             std::list<std::shared_ptr<Record<Character>>> list;
             auto i = begin, end1 = end;
-            while (({
+            while (true) {
                 auto[success, record] = item->match(i, end);
-                success && (record->end > i) ? ({
+                if (success && (record->end > i)) {
                     list.emplace_back(record);
                     i = record->end;
-                    true;
-                }) : ({
+                } else {
                     end1 = i;
-                    false;
-                });
-            }));
-            return {true, ({
-                auto r = std::make_shared<record::Kleene<Character>>();
-                r->begin = begin;
-                r->end = end1;
-                r->list = std::move(list);
-                r;
-            })};
+                    break;
+                }
+            }
+            auto r = std::make_shared<record::Kleene<Character>>();
+            r->begin = begin;
+            r->end = end1;
+            r->list = std::move(list);
+            return {true, r};
         }
 
         template<typename Character>
@@ -226,12 +209,10 @@ namespace reg {
                 const typename Traits<Character>::String::const_iterator &end
         ) const {
             auto matched = core->match(begin, end);
-            return {matched.success, ({
-                auto r = std::make_shared<Record<Character>>();
-                r->begin = begin;
-                r->end = matched.record->end;
-                r;
-            })};
+            auto r = std::make_shared<Record<Character>>();
+            r->begin = begin;
+            r->end = matched.record->end;
+            return {matched.success, r};
         }
     }
 }
