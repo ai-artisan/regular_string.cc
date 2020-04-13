@@ -75,7 +75,10 @@ namespace reg {
                         key = i->key;
                         record = matched.record;
                         i = this->linear.cend();
-                    } else i++;
+                    } else {
+                        if (matched.record->end > end1) end1 = matched.record->end;
+                        i++;
+                    }
                 }));
                 return {success, ({
                     auto r = std::make_shared<record::LinearSome<Character>>();
