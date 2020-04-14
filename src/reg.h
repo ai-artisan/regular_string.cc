@@ -146,8 +146,7 @@ namespace reg {
                 template<typename Value>
                 /*explicit*/ Item(Value &&value) : key(), value(std::forward<Value>(value)) {}
 
-                Item(TYPE(key) &&key, const TYPE(value) &value) :
-                        key(std::move(key)), value(value) {}
+                Item(TYPE(key) &&key, const TYPE(value) &value) : key(std::move(key)), value(value) {}
             };
 
             const std::vector<Item> linear;
