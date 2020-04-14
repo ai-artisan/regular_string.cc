@@ -16,32 +16,32 @@ namespace reg {
     namespace pattern {
         template<typename Character>
         inline typename Pattern<Character>::Matched Empty<Character>::match(
-                const typename Traits<Character>::String::const_iterator &begin,
-                const typename Traits<Character>::String::const_iterator &end
+                const typename Traits<Character>::String::const_iterator &head,
+                const typename Traits<Character>::String::const_iterator &
         ) const {
             auto r = std::make_shared<Record<Character>>();
-            r->begin = begin;
-            r->end = begin;
+            r->begin = head;
+            r->end = r->furthest_end = head;
             return {true, r};
         }
 
         template<typename Character>
         typename Pattern<Character>::Matched Singleton<Character>::match(
-                const typename Traits<Character>::String::const_iterator &begin,
-                const typename Traits<Character>::String::const_iterator &end
+                const typename Traits<Character>::String::const_iterator &head,
+                const typename Traits<Character>::String::const_iterator &tail
         ) const {
             bool success;
-            typename Traits<Character>::String::const_iterator end1;
-            if (begin == end) {
+            typename Traits<Character>::String::const_iterator end;
+            if (head == tail) {
                 success = false;
-                end1 = begin;
+                end = head;
             } else {
-                success = describe(*begin);
-                end1 = std::next(begin);
+                success = describe(*head);
+                end = std::next(head);
             }
             auto r = std::make_shared<Record<Character>>();
-            r->begin = begin;
-            r->end = end1;
+            r->begin = head;
+            r->end = r->furthest_end = end;
             return {success, r};
         }
 
@@ -55,31 +55,30 @@ namespace reg {
         namespace linear {
             template<typename Character>
             typename Pattern<Character>::Matched Union<Character>::match(
-                    const typename Traits<Character>::String::const_iterator &begin,
-                    const typename Traits<Character>::String::const_iterator &end
+                    const typename Traits<Character>::String::const_iterator &head,
+                    const typename Traits<Character>::String::const_iterator &tail
             ) const {
                 bool success = false;
-                auto end1 = begin;
+                auto end = head, furthest_end = head;
                 typename Traits<Character>::String key;
                 std::size_t index = 0;
                 std::shared_ptr<Record<Character>> record = nullptr;
                 for (auto i = this->linear.cbegin(); i < this->linear.cend();) {
-                    auto matched = i->value->match(begin, end);
+                    auto matched = i->value->match(head, tail);
                     if (matched.success) {
                         success = true;
-                        end1 = matched.record->end;
+                        end = matched.record->end;
                         index = std::size_t(i - this->linear.cbegin());
                         key = i->key;
                         record = matched.record;
                         i = this->linear.cend();
-                    } else {
-                        if (matched.record->end > end1) end1 = matched.record->end;
-                        i++;
-                    }
+                    } else i++;
+                    if (matched.record->end > furthest_end) furthest_end = matched.record->end;
                 }
                 auto r = std::make_shared<record::LinearSome<Character>>();
-                r->begin = begin;
-                r->end = end1;
+                r->begin = head;
+                r->end = end;
+                r->furthest_end = furthest_end;
                 r->index = index;
                 r->key = std::move(key);
                 r->value = record;
@@ -88,27 +87,27 @@ namespace reg {
 
             template<typename Character>
             typename Pattern<Character>::Matched Intersection<Character>::match(
-                    const typename Traits<Character>::String::const_iterator &begin,
-                    const typename Traits<Character>::String::const_iterator &end
+                    const typename Traits<Character>::String::const_iterator &head,
+                    const typename Traits<Character>::String::const_iterator &tail
             ) const {
                 bool success = true;
-                auto end1 = begin;
+                auto end = head;
                 std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> map;
                 std::vector<std::shared_ptr<Record<Character>>> vector(this->linear.size(), nullptr);
                 for (auto i = this->linear.cbegin(); i < this->linear.cend();) {
-                    auto matched = i->value->match(begin, end);
+                    auto matched = i->value->match(head, tail);
                     map[i->key] = matched.record;
                     vector[i - this->linear.cbegin()] = matched.record;
                     if (matched.success) i++;
                     else {
                         success = false;
-                        end1 = matched.record->end;
+                        end = matched.record->end;
                         i = this->linear.cend();
                     }
                 }
                 auto r = std::make_shared<record::LinearEvery<Character>>();
-                r->begin = begin;
-                r->end = end1;
+                r->begin = head;
+                r->end = end;
                 r->map = std::move(map);
                 r->vector = std::move(vector);
                 return {success, r};

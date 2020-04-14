@@ -44,11 +44,7 @@ namespace reg {
     struct Record : std::enable_shared_from_this<Record<Character>> {
         virtual ~Record() = default;
 
-        typename Traits<Character>::String::const_iterator begin, end;
-
-        inline typename Traits<Character>::String string() const {
-            return typename Traits<Character>::String(begin, end);
-        }
+        typename Traits<Character>::String::const_iterator begin, end, furthest_end;
 
         template<typename Derived>
         std::shared_ptr<Derived> as() const;
@@ -86,21 +82,21 @@ namespace reg {
                 const typename Traits<Character>::String::const_iterator &
         ) const = 0;
 
-        inline typename Pattern<Character>::Matched match(const typename Traits<Character>::String &s) const {
-            return match(s.cbegin(), s.cend());
-        }
+//        inline typename Pattern<Character>::Matched match(const typename Traits<Character>::String &s) const {
+//            return match(s.cbegin(), s.cend());
+//        }
 
-        inline typename Pattern<Character>::Matched adapt(
-                const typename Traits<Character>::String::const_iterator &begin,
-                const typename Traits<Character>::String::const_iterator &end
-        ) const {
-            auto[b, r]=match(begin, end);
-            return {b && r->end == end, r};
-        }
-
-        inline typename Pattern<Character>::Matched adapt(const typename Traits<Character>::String &s) const {
-            return adapt(s.cbegin(), s.cend());
-        }
+//        inline typename Pattern<Character>::Matched adapt(
+//                const typename Traits<Character>::String::const_iterator &begin,
+//                const typename Traits<Character>::String::const_iterator &end
+//        ) const {
+//            auto[b, r]=match(begin, end);
+//            return {b && r->end == end, r};
+//        }
+//
+//        inline typename Pattern<Character>::Matched adapt(const typename Traits<Character>::String &s) const {
+//            return adapt(s.cbegin(), s.cend());
+//        }
 
         template<typename Derived>
         std::shared_ptr<Derived> as() const;

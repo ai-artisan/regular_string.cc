@@ -38,11 +38,14 @@ namespace reg {
                     p_seg = hub::pq(hub::pk(hub::pld({hub::psa(), p_sep}))),
                     p = hub::plc({p_seg, hub::pk(hub::plc({hub::pq(p_sep), p_seg}))});
 
-            auto r = p->adapt(s).record->template as<typename hub::rlet>();
-            l.emplace_back(r->vector[0]->string());
+            auto r = p->match(s.cbegin(), s.cend()).record->template as<typename hub::rlet>();
+            auto &rv0 = r->vector[0];
+            l.emplace_back(typename Traits<Character>::String(rv0->begin, rv0->end));
             auto r_rest = r->vector[1]->template as<typename hub::rkt>();
-            for (auto i = r_rest->list.cbegin(); i != r_rest->list.cend(); i++)
-                l.emplace_back((*i)->template as<typename hub::rlet>()->vector[1]->string());
+            for (auto i = r_rest->list.cbegin(); i != r_rest->list.cend(); i++) {
+                auto &rv1 = (*i)->template as<typename hub::rlet>()->vector[1];
+                l.emplace_back(typename Traits<Character>::String(rv1->begin, rv1->end));
+            }
 
             return l;
         }
