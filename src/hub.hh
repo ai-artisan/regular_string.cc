@@ -10,7 +10,7 @@ namespace reg {
         using rt=Record<Character>;
         using rlst=record::LinearSome<Character>;
         using rlet=record::LinearEvery<Character>;
-        using rkt=record::Kleene<Character>;
+        using rgt=record::Greedy<Character>;
 
         using pt=Pattern<Character>;
         using pot=pattern::Empty<Character>;
@@ -163,7 +163,7 @@ namespace reg {
             using rt=hub<char>::rt;
             using rlst=hub<char>::rlst;
             using rlet=hub<char>::rlet;
-            using rkt=hub<char>::rkt;
+            using rgt=hub<char>::rgt;
 
             using pt=hub<char>::pt;
             using pot=hub<char>::pot;
@@ -241,7 +241,7 @@ namespace reg {
             using wrt=hub<wchar_t>::rt;
             using wrlst=hub<wchar_t>::rlst;
             using wrlet=hub<wchar_t>::rlet;
-            using wrkt=hub<wchar_t>::rkt;
+            using wrgt=hub<wchar_t>::rgt ;
 
             using wpt=hub<wchar_t>::pt;
             using wpot=hub<wchar_t>::pot;

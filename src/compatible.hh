@@ -40,11 +40,11 @@ namespace reg {
 
             auto r = p->match(s.cbegin(), s.cend()).record->template as<typename hub::rlet>();
             auto &rv0 = r->vector[0];
-            l.emplace_back(typename Traits<Character>::String(rv0->begin, rv0->end));
-            auto r_rest = r->vector[1]->template as<typename hub::rkt>();
+            l.emplace_back(typename Traits<Character>::String(rv0->begin, rv0->direct_end));
+            auto r_rest = r->vector[1]->template as<typename hub::rgt>();
             for (auto i = r_rest->list.cbegin(); i != r_rest->list.cend(); i++) {
                 auto &rv1 = (*i)->template as<typename hub::rlet>()->vector[1];
-                l.emplace_back(typename Traits<Character>::String(rv1->begin, rv1->end));
+                l.emplace_back(typename Traits<Character>::String(rv1->begin, rv1->direct_end));
             }
 
             return l;

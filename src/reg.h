@@ -42,9 +42,10 @@ namespace reg {
 
     template<typename Character>
     struct Record : std::enable_shared_from_this<Record<Character>> {
-        virtual ~Record() = default;
+        using Cursor=typename Traits<Character>::String::const_iterator;
+        const Cursor begin, direct_end, greedy_end;
 
-        typename Traits<Character>::String::const_iterator begin, end, furthest_end;
+        Record(Cursor, Cursor, Cursor);
 
         template<typename Derived>
         std::shared_ptr<Derived> as() const;
@@ -52,29 +53,47 @@ namespace reg {
 
     namespace record {
         template<typename Character>
-        struct LinearSome : Record<Character> {
-            std::size_t index;
-            typename Traits<Character>::String key;
-            std::shared_ptr<Record<Character>> value;
+        struct Some : Record<Character> {
+            using Cursor=typename Record<Character>::Cursor;
+            using Index=std::size_t;
+            using Key=typename Traits<Character>::String;
+            using Value=std::shared_ptr<Record<Character>>;
+
+            const Index index;
+            const Key key;
+            const Value value;
+
+            Some(Cursor, Cursor, Cursor, Index, Key, Value);
         };
 
         template<typename Character>
-        struct LinearEvery : Record<Character> {
-            std::vector<std::shared_ptr<Record<Character>>> vector;
-            std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>> map;
+        struct Every : Record<Character> {
+            using Cursor=typename Record<Character>::Cursor;
+            using Vector=std::vector<std::shared_ptr<Record<Character>>>;
+            using Map=std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>>;
+
+            const Vector vector;
+            const Map map;
+
+            Every(Cursor, Cursor, Cursor, Vector, Map);
         };
 
         template<typename Character>
-        struct Kleene : Record<Character> {
-            std::list<std::shared_ptr<Record<Character>>> list;
+        struct Greedy : Record<Character> {
+            using Cursor=typename Record<Character>::Cursor;
+            using List=std::list<std::shared_ptr<Record<Character>>>;
+
+            const List list;
+
+            Greedy(Cursor, Cursor, Cursor, List);
         };
     }
 
     template<typename Character>
     struct Pattern : std::enable_shared_from_this<Pattern<Character>> {
         struct Matched {
-            bool success;
-            std::shared_ptr<Record<Character>> record;
+            const bool success;
+            const std::shared_ptr<Record<Character>> record;
         };
 
         virtual typename Pattern<Character>::Matched match(
@@ -82,29 +101,13 @@ namespace reg {
                 const typename Traits<Character>::String::const_iterator &
         ) const = 0;
 
-//        inline typename Pattern<Character>::Matched match(const typename Traits<Character>::String &s) const {
-//            return match(s.cbegin(), s.cend());
-//        }
-
-//        inline typename Pattern<Character>::Matched adapt(
-//                const typename Traits<Character>::String::const_iterator &begin,
-//                const typename Traits<Character>::String::const_iterator &end
-//        ) const {
-//            auto[b, r]=match(begin, end);
-//            return {b && r->end == end, r};
-//        }
-//
-//        inline typename Pattern<Character>::Matched adapt(const typename Traits<Character>::String &s) const {
-//            return adapt(s.cbegin(), s.cend());
-//        }
-
         template<typename Derived>
         std::shared_ptr<Derived> as() const;
     };
 
     namespace pattern {
         template<typename Character>
-        struct Empty : Pattern<Character> {
+        struct EmptyString : Pattern<Character> {
             typename Pattern<Character>::Matched match(
                     const typename Traits<Character>::String::const_iterator &,
                     const typename Traits<Character>::String::const_iterator &
@@ -112,10 +115,10 @@ namespace reg {
         };
 
         template<typename Character>
-        struct Singleton : Pattern<Character> {
+        struct LiteralCharacter : Pattern<Character> {
             const std::function<bool(const Character &)> describe;
 
-            explicit Singleton(const TYPE(describe) &describe) : describe(describe) {}
+            explicit LiteralCharacter(const TYPE(describe) &describe) : describe(describe) {}
 
             typename Pattern<Character>::Matched match(
                     const typename Traits<Character>::String::const_iterator &,
@@ -123,9 +126,9 @@ namespace reg {
             ) const final;
         };
 
-        namespace singleton {
+        namespace literal_character {
             template<typename Character, typename Context>
-            struct Closure : Singleton<Character> {
+            struct Closure : LiteralCharacter<Character> {
                 const Context context;
                 const std::function<bool(const Context &, const Character &)> depict;
 
@@ -152,32 +155,8 @@ namespace reg {
 
         namespace linear {
             template<typename Character>
-            struct Union : Linear<Character> {
-                explicit Union(TYPE(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
-
-                typename Pattern<Character>::Matched match(
-                        const typename Traits<Character>::String::const_iterator &,
-                        const typename Traits<Character>::String::const_iterator &
-                ) const final;
-            };
-
-            template<typename Character>
-            struct Intersection : Linear<Character> {
-                explicit Intersection(TYPE(Linear<Character>::linear) &&linear) : Linear<Character>(
-                        std::move(linear)) {}
-
-                typename Pattern<Character>::Matched match(
-                        const typename Traits<Character>::String::const_iterator &,
-                        const typename Traits<Character>::String::const_iterator &
-                ) const;
-            };
-
-            template<typename Character>
-            struct Difference : Linear<Character> {
-                const bool sign;
-
-                explicit Difference(TYPE(Linear<Character>::linear) &&linear, const TYPE(sign) &sign = true) :
-                        Linear<Character>(std::move(linear)), sign(sign) {}
+            struct Alternation : Linear<Character> {
+                explicit Alternation(TYPE(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
 
                 typename Pattern<Character>::Matched match(
                         const typename Traits<Character>::String::const_iterator &,
@@ -198,10 +177,10 @@ namespace reg {
         }
 
         template<typename Character>
-        struct KleeneClosure : public Pattern<Character> {
+        struct KleeneStar : public Pattern<Character> {
             std::shared_ptr<Pattern<Character>> item;
 
-            explicit KleeneClosure(const TYPE(item) &item) : item(item) {}
+            explicit KleeneStar(const TYPE(item) &item) : item(item) {}
 
             typename Pattern<Character>::Matched match(
                     const typename Traits<Character>::String::const_iterator &,
