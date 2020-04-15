@@ -10,8 +10,6 @@
 #include <tuple>
 #include <vector>
 
-#define TYPE(X) typename std::remove_const<decltype(X)>::type
-
 namespace reg {
     template<typename...>
     struct Traits {
@@ -45,13 +43,25 @@ namespace reg {
         using Cursor=typename Traits<Character>::String::const_iterator;
         const Cursor begin, direct_end, greedy_end;
 
-        Record(Cursor, Cursor, Cursor);
+        Record(Cursor begin, Cursor direct_end, Cursor greedy_end) :
+                begin(std::move(begin)), direct_end(std::move(direct_end)), greedy_end(std::move(greedy_end)) {}
 
         template<typename Derived>
         std::shared_ptr<Derived> as() const;
     };
 
     namespace record {
+        template<typename Character>
+        struct Binary : Record<Character> {
+            using Cursor=typename Record<Character>::Cursor;
+            using Array=std::array<std::shared_ptr<Record<Character>>, 2>;
+            const Array array;
+
+            Binary(Cursor begin, Cursor direct_end, Cursor greedy_end, Array array) :
+                    Record<Character>(std::move(begin), std::move(direct_end), std::move(greedy_end)),
+                    array(std::move(array)) {}
+        };
+
         template<typename Character>
         struct Some : Record<Character> {
             using Cursor=typename Record<Character>::Cursor;
@@ -63,7 +73,9 @@ namespace reg {
             const Key key;
             const Value value;
 
-            Some(Cursor, Cursor, Cursor, Index, Key, Value);
+            Some(Cursor begin, Cursor direct_end, Cursor greedy_end, const Index &index, Key key, Value value) :
+                    Record<Character>(std::move(begin), std::move(direct_end), std::move(greedy_end)),
+                    index(index), key(std::move(key)), value(std::move(value)) {}
         };
 
         template<typename Character>
@@ -75,7 +87,9 @@ namespace reg {
             const Vector vector;
             const Map map;
 
-            Every(Cursor, Cursor, Cursor, Vector, Map);
+            Every(Cursor begin, Cursor direct_end, Cursor greedy_end, Vector vector, Map map) :
+                    Record<Character>(std::move(begin), std::move(direct_end), std::move(greedy_end)),
+                    vector(std::move(vector)), map(std::move(map)) {}
         };
 
         template<typename Character>
@@ -85,7 +99,9 @@ namespace reg {
 
             const List list;
 
-            Greedy(Cursor, Cursor, Cursor, List);
+            Greedy(Cursor begin, Cursor direct_end, Cursor greedy_end, List list) :
+                    Record<Character>(std::move(begin), std::move(direct_end), std::move(greedy_end)),
+                    list(std::move(list)) {}
         };
     }
 
@@ -116,9 +132,11 @@ namespace reg {
 
         template<typename Character>
         struct LiteralCharacter : Pattern<Character> {
-            const std::function<bool(const Character &)> describe;
+            using Describe=std::function<bool(const Character &)>;
 
-            explicit LiteralCharacter(const TYPE(describe) &describe) : describe(describe) {}
+            const Describe describe;
+
+            explicit LiteralCharacter(Describe describe) : describe(std::move(describe)) {}
 
             typename Pattern<Character>::Matched match(
                     const typename Traits<Character>::String::const_iterator &,
@@ -129,34 +147,43 @@ namespace reg {
         namespace literal_character {
             template<typename Character, typename Context>
             struct Closure : LiteralCharacter<Character> {
-                const Context context;
-                const std::function<bool(const Context &, const Character &)> depict;
+                using Depict=std::function<bool(const Context &, const Character &)>;
 
-                Closure(Context &&, const TYPE(depict) &);
+                const Context context;
+                const Depict depict;
+
+                Closure(Context, Depict);
             };
         }
 
         template<typename Character>
         struct Linear : Pattern<Character> {
             struct Item {
-                typename Traits<Character>::String key;
-                std::shared_ptr<Pattern<Character>> value;
+                using Key=typename Traits<Character>::String;
+                using Value=std::shared_ptr<Pattern<Character>>;
+
+                Key key;
+                Value value;
 
                 template<typename Value>
-                /*explicit*/ Item(Value &&value) : key(), value(std::forward<Value>(value)) {}
+                /*explicit*/ Item(Value value) : key(), value(std::move(value)) {}
 
-                Item(TYPE(key) &&key, const TYPE(value) &value) : key(std::move(key)), value(value) {}
+                Item(Key key, Value value) : key(std::move(key)), value(std::move(value)) {}
             };
 
-            const std::vector<Item> linear;
+            using Value=std::vector<Item>;
 
-            explicit Linear(TYPE(linear) &&linear) : linear(std::move(linear)) {}
+            const Value value;
+
+            explicit Linear(Value value) : value(std::move(value)) {}
         };
 
         namespace linear {
             template<typename Character>
             struct Alternation : Linear<Character> {
-                explicit Alternation(TYPE(Linear<Character>::linear) &&linear) : Linear<Character>(std::move(linear)) {}
+                using Vector=typename Linear<Character>::Vector;
+
+                explicit Alternation(Vector vector) : Linear<Character>(std::move(vector)) {}
 
                 typename Pattern<Character>::Matched match(
                         const typename Traits<Character>::String::const_iterator &,
@@ -166,8 +193,9 @@ namespace reg {
 
             template<typename Character>
             struct Concatenation : Linear<Character> {
-                explicit Concatenation(TYPE(Linear<Character>::linear) &&linear) : Linear<Character>(
-                        std::move(linear)) {}
+                using Vector=typename Linear<Character>::Vector;
+
+                explicit Concatenation(Vector vector) : Linear<Character>(std::move(vector)) {}
 
                 typename Pattern<Character>::Matched match(
                         const typename Traits<Character>::String::const_iterator &,
@@ -178,9 +206,24 @@ namespace reg {
 
         template<typename Character>
         struct KleeneStar : public Pattern<Character> {
-            std::shared_ptr<Pattern<Character>> item;
+            using Item=std::shared_ptr<Pattern<Character>>;
+            const Item item;
 
-            explicit KleeneStar(const TYPE(item) &item) : item(item) {}
+            explicit KleeneStar(Item item) : item(std::move(item)) {}
+
+            typename Pattern<Character>::Matched match(
+                    const typename Traits<Character>::String::const_iterator &,
+                    const typename Traits<Character>::String::const_iterator &
+            ) const final;
+        };
+
+        template<typename Character>
+        struct Operation : Pattern<Character> {
+            using Array=std::array<Pattern<Character>, 2>;
+            const bool sign;
+            const Array array;
+
+            Operation(const bool &sign, Array array) : sign(sign), array(std::move(array)) {}
 
             typename Pattern<Character>::Matched match(
                     const typename Traits<Character>::String::const_iterator &,
@@ -200,9 +243,10 @@ namespace reg {
 
         template<typename Character>
         struct Collapsed : Pattern<Character> {
-            const std::shared_ptr<Pattern<Character>> core;
+            using Core=std::shared_ptr<Pattern<Character>>;
+            const Core core;
 
-            explicit Collapsed(const TYPE(core) &core) : core(core) {};
+            explicit Collapsed(Core core) : core(std::move(core)) {};
 
             typename Pattern<Character>::Matched match(
                     const typename Traits<Character>::String::const_iterator &,
