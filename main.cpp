@@ -3,8 +3,7 @@
 #include "include.hh"
 
 int main() {
-    auto p = std::make_shared<reg::pattern::EmptyString<char>>();
     std::string s;
-    p->match(s.cbegin(), s.cend());
+    regular::Record<char> r = {s.cbegin(), s.cend(), s.cend()};
     return 0;
 }

@@ -11,32 +11,6 @@
 #include <vector>
 
 namespace reg {
-    template<typename...>
-    struct Traits {
-        ~Traits() = delete;
-    };
-
-    template<>
-    struct Traits<char> {
-        ~Traits() = delete;
-
-        using String=std::string;
-
-        static inline String string(const std::string &s) {
-            return s;
-        }
-    };
-
-    template<>
-    struct Traits<wchar_t> {
-        ~Traits() = delete;
-
-        using String=std::wstring;
-
-        static inline String string(const std::string &s) {
-            return std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>().from_bytes(s);
-        }
-    };
 
     template<typename Character>
     struct Record : std::enable_shared_from_this<Record<Character>> {
@@ -181,9 +155,9 @@ namespace reg {
         namespace linear {
             template<typename Character>
             struct Alternation : Linear<Character> {
-                using Vector=typename Linear<Character>::Vector;
+                using Value=typename Linear<Character>::Value;
 
-                explicit Alternation(Vector vector) : Linear<Character>(std::move(vector)) {}
+                explicit Alternation(Value value) : Linear<Character>(std::move(value)) {}
 
                 typename Pattern<Character>::Matched match(
                         const typename Traits<Character>::String::const_iterator &,
@@ -193,9 +167,9 @@ namespace reg {
 
             template<typename Character>
             struct Concatenation : Linear<Character> {
-                using Vector=typename Linear<Character>::Vector;
+                using Value=typename Linear<Character>::Value;
 
-                explicit Concatenation(Vector vector) : Linear<Character>(std::move(vector)) {}
+                explicit Concatenation(Value value) : Linear<Character>(std::move(value)) {}
 
                 typename Pattern<Character>::Matched match(
                         const typename Traits<Character>::String::const_iterator &,
@@ -219,7 +193,7 @@ namespace reg {
 
         template<typename Character>
         struct Operation : Pattern<Character> {
-            using Array=std::array<Pattern<Character>, 2>;
+            using Array=std::array<std::shared_ptr<Pattern<Character>>, 2>;
             const bool sign;
             const Array array;
 

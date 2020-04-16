@@ -141,9 +141,9 @@ namespace reg {
                 } else success = true;
                 return {success, std::make_shared<record::Binary<Character>>(
                         head, std::move(direct_end), std::move(greedy_end),
-                        {first_matched.record, second_matched.record}
+                        typename record::Binary<Character>::Array({first_matched.record, second_matched.record})
                 )};
-            } else return {false, first_matched};
+            } else return {false, first_matched.record};
         }
 
         template<typename Character>
