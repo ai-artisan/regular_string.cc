@@ -8,8 +8,8 @@
 
 using rt=reg::Record<CHARACTER>;
 using rbt=reg::record::Binary<CHARACTER>;
-using rst=reg::record::Some<CHARACTER>;
-using ret=reg::record::Every<CHARACTER>;
+using rst=reg::record::LinearSome<CHARACTER>;
+using ret=reg::record::LinearEvery<CHARACTER>;
 using rgt=reg::record::Greedy<CHARACTER>;
 
 using pt=reg::Pattern<CHARACTER>;

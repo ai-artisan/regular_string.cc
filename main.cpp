@@ -17,7 +17,10 @@ int main() {
 //    auto p = ra::pc("asdf1234");
 //    auto p = ra::pc('a', 'z');
 //    auto p = ra::pc({ra::pc('a'), ra::pc('1')});
-    auto p = ra::pc(ra::pc('a', 'z'), false, ra::pc('a', 'g'));
+//    auto p = ra::pc(ra::pc('a', 'z'), false, ra::pc('a', 'g'));
+//    auto p = ra::pba(ra::pc("asdf"), ra::pc("1234"));
+//    auto p = ra::pba_zo(ra::pc("asdf"));
+    auto p = ra::pbc(ra::pc('a'), ra::pc('1'));
     std::string s;
     s.clear();
     while (std::cin >> s) {

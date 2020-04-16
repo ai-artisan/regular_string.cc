@@ -67,7 +67,7 @@ namespace reg {
                     } else i++;
                     if (matched.record->greedy_end > greedy_end) greedy_end = matched.record->greedy_end;
                 }
-                return {success, std::make_shared<record::Some<Character>>(
+                return {success, std::make_shared<record::LinearSome<Character>>(
                         head, std::move(direct_end), std::move(greedy_end),
                         index, std::move(key), std::move(record)
                 )};
@@ -93,7 +93,7 @@ namespace reg {
                     } else i++;
                     if (matched.record->greedy_end > greedy_end) greedy_end = matched.record->greedy_end;
                 }
-                return {success, std::make_shared<record::Every<Character >>(
+                return {success, std::make_shared<record::LinearEvery<Character >>(
                         head, std::move(direct_end), std::move(greedy_end),
                         std::move(vector), std::move(map)
                 )};

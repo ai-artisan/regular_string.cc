@@ -37,7 +37,7 @@ namespace reg {
         };
 
         template<typename Character>
-        struct Some : Record<Character> {
+        struct LinearSome : Record<Character> {
             using Cursor=typename Record<Character>::Cursor;
             using Index=std::size_t;
             using Key=typename Traits<Character>::String;
@@ -47,13 +47,13 @@ namespace reg {
             const Key key;
             const Value value;
 
-            Some(Cursor begin, Cursor direct_end, Cursor greedy_end, const Index &index, Key key, Value value) :
+            LinearSome(Cursor begin, Cursor direct_end, Cursor greedy_end, const Index &index, Key key, Value value) :
                     Record<Character>(std::move(begin), std::move(direct_end), std::move(greedy_end)),
                     index(index), key(std::move(key)), value(std::move(value)) {}
         };
 
         template<typename Character>
-        struct Every : Record<Character> {
+        struct LinearEvery : Record<Character> {
             using Cursor=typename Record<Character>::Cursor;
             using Vector=std::vector<std::shared_ptr<Record<Character>>>;
             using Map=std::unordered_map<typename Traits<Character>::String, std::shared_ptr<Record<Character>>>;
@@ -61,7 +61,7 @@ namespace reg {
             const Vector vector;
             const Map map;
 
-            Every(Cursor begin, Cursor direct_end, Cursor greedy_end, Vector vector, Map map) :
+            LinearEvery(Cursor begin, Cursor direct_end, Cursor greedy_end, Vector vector, Map map) :
                     Record<Character>(std::move(begin), std::move(direct_end), std::move(greedy_end)),
                     vector(std::move(vector)), map(std::move(map)) {}
         };

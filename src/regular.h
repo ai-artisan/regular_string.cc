@@ -26,16 +26,16 @@ namespace regular {
 
     namespace record {
         template<typename>
-        struct Unary;
-
-        template<typename>
         struct Some;
 
         template<typename>
-        struct Binary;
+        struct LinearSome;
 
         template<typename>
         struct Every;
+
+        template<typename>
+        struct LinearEvery;
 
         template<typename>
         struct Greedy;

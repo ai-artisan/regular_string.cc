@@ -7,18 +7,18 @@ namespace regular {
     struct Alias {
         ~Alias() = delete;
 
-        using rt = regular::Record<Character>;
-        using rut = regular::record::Unary<Character>;
-        using rst = regular::record::Some<Character>;
-        using rbt = regular::record::Binary<Character>;
-        using ret = regular::record::Every<Character>;
-        using rgt = regular::record::Greedy<Character>;
+        using rt = Record<Character>;
+        using rbst = record::Some<Character>;
+        using rlst = record::LinearSome<Character>;
+        using rbet = record::Every<Character>;
+        using rlet = record::LinearEvery<Character>;
+        using rgt = record::Greedy<Character>;
 
-        using pt = regular::Pattern<Character>;
-        using pot = regular::pattern::EmptyString<Character>;
-        using pct = regular::pattern::LiteralCharacter<Character>;
+        using pt = Pattern<Character>;
+        using pot = pattern::EmptyString<Character>;
+        using pct = pattern::LiteralCharacter<Character>;
         template<typename Context>
-        using pcct = regular::pattern::literal_character::Closure<Character, Context>;
+        using pcct = pattern::literal_character::Closure<Character, Context>;
 
         static inline auto po() { return std::make_shared<pot>(); }
 
@@ -68,6 +68,16 @@ namespace regular {
                 if (first->describe(c)) return !(sign ^ second->describe(c));
                 else return false;
             });
+        }
+
+        static inline auto pba(const std::shared_ptr<pt> &first, const std::shared_ptr<pt> &second) {
+            return std::make_shared<typename pattern::binary::Alternation<Character>>(first, second);
+        }
+
+        static inline auto pba_zo(const std::shared_ptr<pt> &p) { return pba(p, po()); }
+
+        static inline auto pbc(const std::shared_ptr<pt> &first, const std::shared_ptr<pt> &second) {
+            return std::make_shared<typename pattern::binary::Concatenation<Character>>(first, second);
         }
     };
 }

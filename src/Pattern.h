@@ -5,9 +5,9 @@
 namespace regular {
     template<typename Character>
     struct Pattern : std::enable_shared_from_this<Pattern<Character>> {
-        using PtrPattern=std::shared_ptr<Pattern>;
-        using StringIterator=typename CharacterTraits<Character>::String::const_iterator;
-        using Matched=std::pair<bool, std::shared_ptr<Record < Character>>>;
+        using PtrPattern = std::shared_ptr<Pattern>;
+        using StringIterator = typename CharacterTraits<Character>::String::const_iterator;
+        using Matched = std::pair<bool, std::shared_ptr<Record < Character>>>;
 
         virtual Matched match(const StringIterator &, const StringIterator &) const = 0;
 
@@ -20,8 +20,8 @@ namespace regular {
     namespace pattern {
         template<typename Character>
         struct EmptyString : Pattern<Character> {
-            using StringIterator=typename Pattern<Character>::StringIterator;
-            using Matched=typename Pattern<Character>::Matched;
+            using StringIterator = typename Pattern<Character>::StringIterator;
+            using Matched = typename Pattern<Character>::Matched;
 
             Matched match(const StringIterator &head, const StringIterator &) const final {
                 return {true, std::make_shared<Record<Character>>(head, head, head)};
@@ -30,9 +30,9 @@ namespace regular {
 
         template<typename Character>
         struct LiteralCharacter : Pattern<Character> {
-            using StringIterator=typename Pattern<Character>::StringIterator;
-            using Matched=typename Pattern<Character>::Matched;
-            using Describe=std::function<bool(const Character &)>;
+            using StringIterator = typename Pattern<Character>::StringIterator;
+            using Matched = typename Pattern<Character>::Matched;
+            using Describe = std::function<bool(const Character &)>;
 
             const Describe describe;
 
@@ -53,9 +53,9 @@ namespace regular {
         namespace literal_character {
             template<typename Character, typename Context>
             struct Closure : LiteralCharacter<Character> {
-                using StringIterator=typename Pattern<Character>::StringIterator;
-                using Matched=typename Pattern<Character>::Matched;
-                using Depict=std::function<bool(const Context &, const Character &)>;
+                using StringIterator = typename Pattern<Character>::StringIterator;
+                using Matched = typename Pattern<Character>::Matched;
+                using Depict = std::function<bool(const Context &, const Character &)>;
 
                 const Context context;
                 const Depict depict;
@@ -68,39 +68,67 @@ namespace regular {
 
         template<typename Character>
         struct Binary : Pattern<Character> {
-            using PtrPattern=typename Pattern<Character>::PtrPattern;
-            using Array=std::array<PtrPattern, 2>;
+            using PtrPattern = typename Pattern<Character>::PtrPattern;
 
-            const Array array;
+            const PtrPattern first, second;
 
-            explicit Binary(Array array) : array(std::move(array)) {}
+            Binary(const PtrPattern &first, const PtrPattern &second) : first(first), second(second) {}
         };
 
         namespace binary {
             template<typename Character>
             struct Alternation : Binary<Character> {
-                using PtrPattern=typename Pattern<Character>::PtrPattern;
-                using StringIterator=typename Pattern<Character>::StringIterator;
-                using Matched=typename Pattern<Character>::Matched;
-                using Array=typename Binary<Character>::Array;
+                using PtrPattern = typename Pattern<Character>::PtrPattern;
+                using StringIterator = typename Pattern<Character>::StringIterator;
+                using Matched = typename Pattern<Character>::Matched;
 
-                explicit Alternation(Array array) : Binary<Character>(std::move(array)) {}
+                Alternation(const PtrPattern &first, const PtrPattern &second) : Binary<Character>(first, second) {}
 
                 Matched match(const StringIterator &head, const StringIterator &tail) const final {
                     bool index;
-                    auto greedy_end = head;
-                    auto matched = this->array[0]->match(head, tail);
-                    if (matched.first) {
-                        index = false;
-                        greedy_end = matched.second->greedy_end;
-                    } else {
-                        matched = this->array[1]->match(head, tail);
+                    auto matched = first->match(head, tail);
+                    auto greedy_end = matched.second->greedy_end;
+                    if (matched.first) index = false;
+                    else {
+                        matched = second->match(head, tail);
                         index = true;
                         if (matched.second->greedy_end > greedy_end) greedy_end = matched.second->greedy_end;
                     }
                     return {
                             matched.first,
-                            std::make_shared<record::Unary<Character>>(head, matched.second->direct_end, greedy_end, index, matched.second)
+                            std::make_shared<record::Some<Character>>(
+                                    head, matched.second->direct_end, greedy_end,
+                                    index, matched.second
+                            )
+                    };
+                }
+            };
+
+            template<typename Character>
+            struct Concatenation : Binary<Character> {
+                using PtrPattern = typename Pattern<Character>::PtrPattern;
+                using StringIterator = typename Pattern<Character>::StringIterator;
+                using Matched = typename Pattern<Character>::Matched;
+
+                Concatenation(const PtrPattern &first, const PtrPattern &second) : Binary<Character>(first, second) {}
+
+                Matched match(const StringIterator &head, const StringIterator &tail) const final {
+                    auto matched = first->match(head, tail);
+                    auto success = matched.first;
+                    decltype(matched.second) first_record = matched.second, second_record;
+                    auto greedy_end = first_record->greedy_end;
+                    if (success) {
+                        matched = second->match(matched.second->direct_end, tail);
+                        success = success && matched.first;
+                        second_record = matched.second;
+                        if (second_record->greedy_end > greedy_end) greedy_end = second_record->greedy_end;
+                    } else second_record = nullptr;
+                    return {
+                            success,
+                            std::make_shared<record::Every<Character>>(
+                                    head, matched.second->direct_end, greedy_end,
+                                    first_record, second_record
+                            )
                     };
                 }
             };
