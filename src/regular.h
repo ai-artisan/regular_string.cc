@@ -8,12 +8,10 @@
 #include <memory>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 namespace regular {
-    template<typename T>
-    using Ptr=std::shared_ptr<T>;
-
     template<typename...>
     struct CharacterTraits;
 
@@ -54,7 +52,7 @@ namespace regular {
         struct LiteralCharacter;
 
         namespace literal_character {
-            template<typename>
+            template<typename, typename>
             struct Closure;
         }
 
@@ -91,3 +89,4 @@ namespace regular {
 
 #include "CharacterTraits.h"
 #include "Record.h"
+#include "Pattern.h"
