@@ -57,10 +57,15 @@ namespace regular {
         }
 
         template<typename>
-        struct Alternation;
+        struct Binary;
 
-        template<typename>
-        struct Concatenation;
+        namespace binary {
+            template<typename>
+            struct Alternation;
+
+            template<typename>
+            struct Concatenation;
+        }
 
         template<typename>
         struct Linear;
@@ -90,3 +95,4 @@ namespace regular {
 #include "CharacterTraits.h"
 #include "Record.h"
 #include "Pattern.h"
+#include "alias.h"
