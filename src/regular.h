@@ -90,9 +90,12 @@ namespace regular {
         template<typename>
         struct Collapse;
     }
+
+    template<typename>
+    struct Alias;
 }
 
 #include "CharacterTraits.h"
 #include "Record.h"
 #include "Pattern.h"
-#include "alias.h"
+#include "Alias.h"
