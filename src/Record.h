@@ -45,9 +45,9 @@ namespace regular {
             const PtrRecord value;
 
             LinearSome(const StringIterator &begin, const StringIterator &direct_end, const StringIterator &greedy_end,
-                       const std::size_t &index, const Key &key, const PtrRecord &value) :
+                       const std::size_t &index, Key key, const PtrRecord &value) :
                     Record<Character>(begin, direct_end, greedy_end),
-                    index(index), key(key), value(value) {}
+                    index(index), key(std::move(key)), value(value) {}
         };
 
         template<typename Character>

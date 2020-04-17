@@ -132,18 +132,18 @@ namespace reg {
 
         template<typename Character>
         struct Linear : Pattern<Character> {
-            struct Item {
-                using Key=typename Traits<Character>::String;
-                using Value=std::shared_ptr<Pattern<Character>>;
+                struct Item {
+                    using Key=typename Traits<Character>::String;
+                    using Value=std::shared_ptr<Pattern<Character>>;
 
-                Key key;
-                Value value;
+                    Key key;
+                    Value value;
 
-                template<typename Value>
-                /*explicit*/ Item(Value value) : key(), value(std::move(value)) {}
+                    template<typename Value>
+                    /*explicit*/ Item(Value value) : key(), value(std::move(value)) {}
 
-                Item(Key key, Value value) : key(std::move(key)), value(std::move(value)) {}
-            };
+                    Item(Key key, Value value) : key(std::move(key)), value(std::move(value)) {}
+                };
 
             using Value=std::vector<Item>;
 

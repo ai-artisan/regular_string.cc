@@ -134,5 +134,64 @@ namespace regular {
             };
         }
 
+        template<typename Character>
+        struct Linear : Pattern<Character> {
+            using PtrPattern = typename Pattern<Character>::PtrPattern;
+            using StringIterator = typename Pattern<Character>::StringIterator;
+
+            struct Item {
+                using Key=typename record::LinearSome<Character>::String;
+
+                const Key key;
+                const PtrPattern value;
+
+                template<typename Value>
+                /*explicit*/ Item(const PtrPattern &value) : key(), value(value) {}
+
+                Item(Key key, const PtrPattern &value) : key(std::move(key)), value(value) {}
+            };
+
+            using List=std::list<Item>;
+
+            const List list;
+
+            explicit Linear(List list) : list(std::move(list)) {}
+        };
+
+        namespace linear {
+            template<typename Character>
+            struct Alternation : Linear<Character> {
+                using PtrPattern = typename Pattern<Character>::PtrPattern;
+                using StringIterator = typename Pattern<Character>::StringIterator;
+                using Matched = typename Pattern<Character>::Matched;
+                using Key=typename record::LinearSome<Character>::String;
+                using List=typename Linear<Character>::List;
+
+                explicit Alternation(List list) : Linear<Character>(std::move(list)) {}
+
+                Matched match(const StringIterator &head, const StringIterator &tail) const final {
+                    StringIterator greedy_end = head;
+                    Matched matched;
+                    Key key = CharacterTraits<Character>::string("");
+                    std::size_t index = 0;
+                    for (auto &&[k, v]:this->list) {
+                        matched = v->match(head, tail);
+                        if (matched.second->greedy_end > greedy_end) greedy_end = matched.second->greedy_end;
+                        if (matched.first) {
+                            key = k;
+                            break;
+                        }
+                        index++;
+                    }
+                    return {
+                            matched.first,
+                            std::make_shared<record::LinearSome<Character>>(
+                                    head, matched.second->direct_end, greedy_end,
+                                    index, std::move(key), matched.second
+                            )
+                    };
+                }
+            };
+        }
     }
 }

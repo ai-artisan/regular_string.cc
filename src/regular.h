@@ -96,6 +96,11 @@ namespace regular {
 }
 
 #include "CharacterTraits.h"
+
+namespace regular {
+
+}
+
 #include "Record.h"
 #include "Pattern.h"
 #include "Alias.h"
