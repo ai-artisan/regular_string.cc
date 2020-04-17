@@ -86,11 +86,11 @@ namespace regular {
 
                 Matched match(const StringIterator &head, const StringIterator &tail) const final {
                     bool index;
-                    auto matched = first->match(head, tail);
+                    auto matched = this->first->match(head, tail);
                     auto greedy_end = matched.second->greedy_end;
                     if (matched.first) index = false;
                     else {
-                        matched = second->match(head, tail);
+                        matched = this->second->match(head, tail);
                         index = true;
                         if (matched.second->greedy_end > greedy_end) greedy_end = matched.second->greedy_end;
                     }
@@ -113,12 +113,12 @@ namespace regular {
                 Concatenation(const PtrPattern &first, const PtrPattern &second) : Binary<Character>(first, second) {}
 
                 Matched match(const StringIterator &head, const StringIterator &tail) const final {
-                    auto matched = first->match(head, tail);
+                    auto matched = this->first->match(head, tail);
                     auto success = matched.first;
                     decltype(matched.second) first_record = matched.second, second_record;
                     auto greedy_end = first_record->greedy_end;
                     if (success) {
-                        matched = second->match(matched.second->direct_end, tail);
+                        matched = this->second->match(matched.second->direct_end, tail);
                         success = success && matched.first;
                         second_record = matched.second;
                         if (second_record->greedy_end > greedy_end) greedy_end = second_record->greedy_end;
