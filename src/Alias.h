@@ -19,18 +19,21 @@ namespace regular {
         using pct = pattern::LiteralCharacter<Character>;
         template<typename Context>
         using pcct = pattern::literal_character::Closure<Character, Context>;
+        using pbt = pattern::Binary<Character>;
+        using pbat = pattern::binary::Alternation<Character>;
+        using pbct = pattern::binary::Concatenation<Character>;
+        using plt = pattern::Linear<Character>;
+        using plat = pattern::linear::Alternation<Character>;
+        using plct = pattern::linear::Concatenation<Character>;
 
         static inline auto po() { return std::make_shared<pot>(); }
 
-        static inline auto pc(
-                const typename pattern::LiteralCharacter<Character>::Describe &describe
-        ) { return std::make_shared<pct>(describe); }
+        static inline auto pc(const typename pct::Describe &describe) { return std::make_shared<pct>(describe); }
 
         template<typename Context>
-        static inline auto pc(
-                Context context,
-                const typename pattern::literal_character::Closure<Character, Context>::Depict &depict
-        ) { return std::make_shared<pcct<Context>>(std::move(context), depict); }
+        static inline auto pc(Context context, const typename pcct<Context>::Depict &depict) {
+            return std::make_shared<pcct<Context>>(std::move(context), depict);
+        }
 
         static inline auto pc() { return pc([](const Character &) -> bool { return true; }); }
 
@@ -71,13 +74,17 @@ namespace regular {
         }
 
         static inline auto pba(const std::shared_ptr<pt> &first, const std::shared_ptr<pt> &second) {
-            return std::make_shared<typename pattern::binary::Alternation<Character>>(first, second);
+            return std::make_shared<pbat>(first, second);
         }
 
         static inline auto pba_zo(const std::shared_ptr<pt> &p) { return pba(p, po()); }
 
         static inline auto pbc(const std::shared_ptr<pt> &first, const std::shared_ptr<pt> &second) {
-            return std::make_shared<typename pattern::binary::Concatenation<Character>>(first, second);
+            return std::make_shared<pbct>(first, second);
+        }
+
+        static inline auto pla(typename plt::List list) {
+            return std::make_shared<plat>(std::move(list));
         }
     };
 }
