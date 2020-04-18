@@ -148,7 +148,8 @@ namespace regular {
                 template<typename Value>
                 /*explicit*/ Item(const Value &value) : key(), value(value) {}
 
-                Item(Key key, const PtrPattern &value) : key(std::move(key)), value(value) {}
+                template<typename Value>
+                Item(Key key, const Value &value) : key(std::move(key)), value(value) {}
             };
 
             using List = std::list<Item>;
@@ -164,7 +165,6 @@ namespace regular {
                 using PtrPattern = typename Pattern<Character>::PtrPattern;
                 using StringIterator = typename Pattern<Character>::StringIterator;
                 using Matched = typename Pattern<Character>::Matched;
-                using Key = typename record::LinearSome<Character>::Key;
                 using List = typename Linear<Character>::List;
 
                 explicit Alternation(List list) : Linear<Character>(std::move(list)) {}
@@ -173,8 +173,9 @@ namespace regular {
                     bool success = false;
                     auto direct_end = head, greedy_end = head;
                     std::size_t index = -1;
-                    Key key = CharacterTraits<Character>::string("");
+                    typename record::LinearSome<Character>::Key key = CharacterTraits<Character>::string("");
                     std::shared_ptr<Record<Character>> value = nullptr;
+
                     for (auto &&item:this->list) {
                         auto matched = item.value->match(head, tail);
                         if (matched.second->greedy_end > greedy_end) greedy_end = matched.second->greedy_end;
@@ -194,6 +195,25 @@ namespace regular {
                                     index, std::move(key), value
                             )
                     };
+                }
+            };
+
+            template<typename Character>
+            struct Concatenation : Linear<Character> {
+                using PtrPattern = typename Pattern<Character>::PtrPattern;
+                using StringIterator = typename Pattern<Character>::StringIterator;
+                using Matched = typename Pattern<Character>::Matched;
+                using List = typename Linear<Character>::List;
+
+                explicit Concatenation(List list) : Linear<Character>(std::move(list)) {}
+
+                Matched match(const StringIterator &head, const StringIterator &tail) const final {
+                    bool success = false;
+                    auto direct_end = head, greedy_end = head;
+                    typename record::LinearEvery<Character>::Vector vector;
+                    typename record::LinearEvery<Character>::Map map;
+
+
                 }
             };
         }

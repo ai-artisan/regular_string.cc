@@ -21,7 +21,7 @@ int main() {
 //    auto p = ra::pba(ra::pc("asdf"), ra::pc("1234"));
 //    auto p = ra::pba_zo(ra::pc("asdf"));
 //    auto p = ra::pbc(ra::pc('a'), ra::pc('1'));
-    auto p = ra::pla({ra::pc('a'), ra::pc('b')});
+    auto p = ra::pla({{"a", ra::pc('a')}, ra::pc('b')});
     std::string s;
     s.clear();
     while (std::cin >> s) {
@@ -29,7 +29,7 @@ int main() {
         std::cout << m.first << '\n'
                   << std::string(m.second->begin, m.second->direct_end) << '\n'
                   << std::string(m.second->begin, m.second->greedy_end) << '\n';
-    };
+    }
 
     return 0;
 }
