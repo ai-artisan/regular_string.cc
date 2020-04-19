@@ -86,11 +86,11 @@ namespace regular {
             struct KleeneStar;
 
             template<typename>
-            struct Placeholder;
-
-            template<typename>
             struct Collapse;
         }
+
+        template<typename>
+        struct Placeholder;
 
         template<typename>
         struct Filter;

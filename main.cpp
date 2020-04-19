@@ -22,7 +22,11 @@ int main() {
 //    auto p = ra::pba_zo(ra::pc("asdf"));
 //    auto p = ra::pbc(ra::pc('a'), ra::pc('1'));
 //    auto p = ra::plc({{"a", ra::pc('a')}, ra::pc('b')});
-    auto p = ra::plcs("asdf");
+//    auto p = ra::plcs("asdf");
+//    auto p = ra::pk(ra::pc('a', 'z'));
+//    auto p = ra::pp();
+//    p->value = ra::pk(ra::pc('a', 'z'));
+    auto p = ra::pq(ra::pc('a'));
     std::string s;
     s.clear();
     while (std::cin >> s) {

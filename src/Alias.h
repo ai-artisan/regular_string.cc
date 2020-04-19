@@ -7,6 +7,8 @@ namespace regular {
     struct Alias {
         ~Alias() = delete;
 
+        using ct = CharacterTraits<Character>;
+
         using rt = Record<Character>;
         using rbst = record::Some<Character>;
         using rlst = record::LinearSome<Character>;
@@ -25,11 +27,11 @@ namespace regular {
         using plt = pattern::Linear<Character>;
         using plat = pattern::linear::Alternation<Character>;
         using plct = pattern::linear::Concatenation<Character>;
-        using put=pattern::Unary<Character>;
+        using put = pattern::Unary<Character>;
         using pkt = pattern::unary::KleeneStar<Character>;
-        using pft = pattern::Filter<Character>;
-        using ppt = pattern::unary::Placeholder<Character>;
         using pqt = pattern::unary::Collapse<Character>;
+        using ppt = pattern::Placeholder<Character>;
+        using pft = pattern::Filter<Character>;
 
         static inline auto po() { return std::make_shared<pot>(); }
 
@@ -46,7 +48,7 @@ namespace regular {
             return pc(c0, [](const Character &c0, const Character &c) -> bool { return c == c0; });
         }
 
-        static auto pc(const typename CharacterTraits<Character>::String &s) {
+        static auto pc(const typename ct::String &s) {
             using Map = std::unordered_map<Character, std::nullptr_t>;
             Map map;
             for (auto &&c:s) map[c] = nullptr;
@@ -96,10 +98,20 @@ namespace regular {
             return std::make_shared<plct>(std::move(list));
         }
 
-        static inline auto plcs(const typename CharacterTraits<Character>::String &s) {
+        static inline auto plcs(const typename ct::String &s) {
             typename plt::List list;
             for (auto &&c:s) list.emplace_back(pc(c));
             return std::make_shared<plct>(std::move(list));
         }
+
+        static inline auto pk(const std::shared_ptr<pt> &value) {
+            return std::make_shared<pkt>(value);
+        }
+
+        static inline auto pq(const std::shared_ptr<pt> &value) {
+            return std::make_shared<pqt>(value);
+        }
+
+        static inline auto pp() { return std::make_shared<ppt>(); }
     };
 }

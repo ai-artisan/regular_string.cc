@@ -235,7 +235,7 @@ namespace regular {
         }
 
         template<typename Character>
-        struct Unary : Linear<Character> {
+        struct Unary : Pattern<Character> {
             using PtrPattern = typename Pattern<Character>::PtrPattern;
 
             const PtrPattern value;
@@ -259,16 +259,49 @@ namespace regular {
                     while (true) {
                         auto matched = this->value->match(direct_end, tail);
                         if (matched.second->greedy_end > greedy_end) greedy_end = matched.second->greedy_end;
-                        bool stop;
                         if (matched.first && (matched.second->direct_end > direct_end)) {
                             list.emplace_back(matched.second);
-                            stop = false;
-                        } else stop = true;
-                        direct_end = matched.second->direct_end;
-                        if (stop) break;
+                            direct_end = matched.second->direct_end;
+                        } else break;
                     }
+                    return {
+                            true,
+                            std::make_shared<record::Greedy<Character>>(
+                                    head, direct_end, greedy_end,
+                                    std::move(list)
+                            )
+                    };
+                }
+            };
+
+            template<typename Character>
+            struct Collapse : Unary<Character> {
+                using PtrPattern = typename Pattern<Character>::PtrPattern;
+                using StringIterator = typename Pattern<Character>::StringIterator;
+                using Matched = typename Pattern<Character>::Matched;
+
+                explicit Collapse(const PtrPattern &value) : Unary<Character>(value) {}
+
+                Matched match(const StringIterator &head, const StringIterator &tail) const final {
+                    auto &&[first, record] = this->value->match(head, tail);
+                    return {first, std::make_shared<Record<Character>>(
+                            record->begin, record->direct_end, record->greedy_end
+                    )};
                 }
             };
         }
+
+        template<typename Character>
+        struct Placeholder : Pattern<Character> {
+            using PtrPattern = typename Pattern<Character>::PtrPattern;
+            using StringIterator = typename Pattern<Character>::StringIterator;
+            using Matched = typename Pattern<Character>::Matched;
+
+            PtrPattern value = nullptr;
+
+            Matched match(const StringIterator &head, const StringIterator &tail) const final {
+                return this->value ? this->value->match(head, tail) : Matched{false, nullptr};
+            }
+        };
     }
 }
