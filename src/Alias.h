@@ -25,6 +25,11 @@ namespace regular {
         using plt = pattern::Linear<Character>;
         using plat = pattern::linear::Alternation<Character>;
         using plct = pattern::linear::Concatenation<Character>;
+        using put=pattern::Unary<Character>;
+        using pkt = pattern::unary::KleeneStar<Character>;
+        using pft = pattern::Filter<Character>;
+        using ppt = pattern::unary::Placeholder<Character>;
+        using pqt = pattern::unary::Collapse<Character>;
 
         static inline auto po() { return std::make_shared<pot>(); }
 
@@ -91,6 +96,10 @@ namespace regular {
             return std::make_shared<plct>(std::move(list));
         }
 
-        static inline auto plcs(){}
+        static inline auto plcs(const typename CharacterTraits<Character>::String &s) {
+            typename plt::List list;
+            for (auto &&c:s) list.emplace_back(pc(c));
+            return std::make_shared<plct>(std::move(list));
+        }
     };
 }

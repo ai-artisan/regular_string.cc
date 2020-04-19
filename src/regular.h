@@ -79,16 +79,21 @@ namespace regular {
         }
 
         template<typename>
-        struct KleeneStar;
+        struct Unary;
+
+        namespace unary {
+            template<typename>
+            struct KleeneStar;
+
+            template<typename>
+            struct Placeholder;
+
+            template<typename>
+            struct Collapse;
+        }
 
         template<typename>
         struct Filter;
-
-        template<typename>
-        struct Placeholder;
-
-        template<typename>
-        struct Collapse;
     }
 
     template<typename>

@@ -137,7 +137,6 @@ namespace regular {
         template<typename Character>
         struct Linear : Pattern<Character> {
             using PtrPattern = typename Pattern<Character>::PtrPattern;
-            using StringIterator = typename Pattern<Character>::StringIterator;
 
             struct Item {
                 using Key = typename record::LinearSome<Character>::Key;
@@ -231,6 +230,43 @@ namespace regular {
                                     std::move(vector), std::move(map)
                             )
                     };
+                }
+            };
+        }
+
+        template<typename Character>
+        struct Unary : Linear<Character> {
+            using PtrPattern = typename Pattern<Character>::PtrPattern;
+
+            const PtrPattern value;
+
+            explicit Unary(const PtrPattern &value) : value(value) {}
+        };
+
+        namespace unary {
+            template<typename Character>
+            struct KleeneStar : Unary<Character> {
+                using PtrPattern = typename Pattern<Character>::PtrPattern;
+                using StringIterator = typename Pattern<Character>::StringIterator;
+                using Matched = typename Pattern<Character>::Matched;
+
+                explicit KleeneStar(const PtrPattern &value) : Unary<Character>(value) {}
+
+                Matched match(const StringIterator &head, const StringIterator &tail) const final {
+                    bool success = true;
+                    auto direct_end = head, greedy_end = head;
+                    typename record::Greedy<Character>::List list;
+                    while (true) {
+                        auto matched = this->value->match(direct_end, tail);
+                        if (matched.second->greedy_end > greedy_end) greedy_end = matched.second->greedy_end;
+                        bool stop;
+                        if (matched.first && (matched.second->direct_end > direct_end)) {
+                            list.emplace_back(matched.second);
+                            stop = false;
+                        } else stop = true;
+                        direct_end = matched.second->direct_end;
+                        if (stop) break;
+                    }
                 }
             };
         }
