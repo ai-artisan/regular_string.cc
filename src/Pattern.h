@@ -208,12 +208,29 @@ namespace regular {
                 explicit Concatenation(List list) : Linear<Character>(std::move(list)) {}
 
                 Matched match(const StringIterator &head, const StringIterator &tail) const final {
-                    bool success = false;
+                    bool success = true;
                     auto direct_end = head, greedy_end = head;
-                    typename record::LinearEvery<Character>::Vector vector;
+                    typename record::LinearEvery<Character>::Vector vector(this->list.size());
                     typename record::LinearEvery<Character>::Map map;
 
-
+                    std::size_t i = 0;
+                    for (auto &&item:this->list) {
+                        auto matched = item.value->match(direct_end, tail);
+                        direct_end = matched.second->direct_end;
+                        if (matched.second->greedy_end > greedy_end) greedy_end = matched.second->greedy_end;
+                        map[item.key] = vector[i++] = matched.second;
+                        if (!matched.first) {
+                            success = false;
+                            break;
+                        }
+                    }
+                    return {
+                            success,
+                            std::make_shared<record::LinearEvery<Character>>(
+                                    head, direct_end, greedy_end,
+                                    std::move(vector), std::move(map)
+                            )
+                    };
                 }
             };
         }

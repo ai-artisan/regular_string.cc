@@ -86,5 +86,11 @@ namespace regular {
         static inline auto pla(typename plt::List list) {
             return std::make_shared<plat>(std::move(list));
         }
+
+        static inline auto plc(typename plt::List list) {
+            return std::make_shared<plct>(std::move(list));
+        }
+
+        static inline auto plcs(){}
     };
 }
