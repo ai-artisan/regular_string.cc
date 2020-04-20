@@ -27,9 +27,10 @@ int main() {
 //    auto p = ra::pp();
 //    p->value = ra::pk(ra::pc('a', 'z'));
 //    auto p = ra::pq(ra::pc('a'));
-    auto p = ra::pf(ra::pk(ra::pc('a', 'z')), false, ra::pla(
-            {ra::plcs("asdf"), ra::plcs("qwer")}
-    ));
+//    auto p = ra::pf(ra::pk(ra::pc('a', 'z')), false, ra::pla(
+//            {ra::plcs("asdf"), ra::plcs("qwer")}
+//    ));
+    auto p = ra::pbc_om(ra::pc('a', 'z'));
     std::string s;
     s.clear();
     while (std::cin >> s) {

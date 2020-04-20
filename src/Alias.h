@@ -84,7 +84,7 @@ namespace regular {
             return std::make_shared<pbat>(first, second);
         }
 
-        static inline auto pba_zo(const std::shared_ptr<pt> &p) { return pba(p, po()); }
+        static inline auto pba_zo(const std::shared_ptr<pt> &target) { return pba(target, po()); }
 
         static inline auto pbc(const std::shared_ptr<pt> &first, const std::shared_ptr<pt> &second) {
             return std::make_shared<pbct>(first, second);
@@ -106,6 +106,10 @@ namespace regular {
 
         static inline auto pk(const std::shared_ptr<pt> &value) {
             return std::make_shared<pkt>(value);
+        }
+
+        static inline auto pbc_om(const std::shared_ptr<pt> &target) {
+            return pbc(target, pk(target));
         }
 
         static inline auto pq(const std::shared_ptr<pt> &value) {
