@@ -15,12 +15,6 @@ namespace regular {
     template<typename...>
     struct CharacterTraits;
 
-    template<>
-    struct CharacterTraits<char>;
-
-    template<>
-    struct CharacterTraits<wchar_t>;
-
     template<typename>
     struct Record;
 
