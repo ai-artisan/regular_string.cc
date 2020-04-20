@@ -5,32 +5,7 @@
 int main() {
     using ra = regular::Alias<char>;
 
-//    auto p = ra::po();
-//    auto p = ra::pc([](const char &c) -> bool {
-//        return 'a' <= c && c <= 'z';
-//    });
-//    auto p = ra::pc('a', [](const char &context, const char &c) -> bool {
-//        return c == context;
-//    });
-//    auto p = ra::pc();
-//    auto p = ra::pc('a');
-//    auto p = ra::pc("asdf1234");
-//    auto p = ra::pc('a', 'z');
-//    auto p = ra::pc({ra::pc('a'), ra::pc('1')});
-//    auto p = ra::pc(ra::pc('a', 'z'), false, ra::pc('a', 'g'));
-//    auto p = ra::pba(ra::pc("asdf"), ra::pc("1234"));
-//    auto p = ra::pba_zo(ra::pc("asdf"));
-//    auto p = ra::pbc(ra::pc('a'), ra::pc('1'));
-//    auto p = ra::plc({{"a", ra::pc('a')}, ra::pc('b')});
-//    auto p = ra::plcs("asdf");
-//    auto p = ra::pk(ra::pc('a', 'z'));
-//    auto p = ra::pp();
-//    p->value = ra::pk(ra::pc('a', 'z'));
-//    auto p = ra::pq(ra::pc('a'));
-//    auto p = ra::pf(ra::pk(ra::pc('a', 'z')), false, ra::pla(
-//            {ra::plcs("asdf"), ra::plcs("qwer")}
-//    ));
-    auto p = ra::pbc_om(ra::pc('a', 'z'));
+    auto p = ra::pc_alnum;
     std::string s;
     s.clear();
     while (std::cin >> s) {

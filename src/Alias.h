@@ -33,7 +33,7 @@ namespace regular {
         using ppt = pattern::Placeholder<Character>;
         using pft = pattern::Filter<Character>;
 
-        static inline auto po() { return std::make_shared<pot>(); }
+        static inline auto po = std::make_shared<pot>();
 
         static inline auto pc(const typename pct::Describe &describe) { return std::make_shared<pct>(describe); }
 
@@ -42,7 +42,7 @@ namespace regular {
             return std::make_shared<pcct<Context>>(std::move(context), depict);
         }
 
-        static inline auto pc() { return pc([](const Character &) -> bool { return true; }); }
+        static inline auto pca = pc([](const Character &) -> bool { return true; });
 
         static inline auto pc(const Character &c0) {
             return pc(c0, [](const Character &c0, const Character &c) -> bool { return c == c0; });
@@ -80,11 +80,43 @@ namespace regular {
             });
         }
 
+        static inline auto pc_ascii = pc(0x00, 0x7F);
+
+        static inline auto pc_lower = pc(ct::character('a'), ct::character('z'));
+
+        static inline auto pc_upper = pc(ct::character('A'), ct::character('Z'));
+
+        static inline auto pc_alpha = pc({pc_upper, pc_lower});
+
+        static inline auto pc_digit = pc(ct::character('0'), ct::character('9'));
+
+        static inline auto pc_alnum = pc({pc_alpha, pc_digit});
+
+        static inline auto pc_blank = pc(ct::string(" \t"));
+
+        static inline auto pc_space = pc(ct::string(" \t\r\n\v\f"));
+
+        static inline auto pc_cntrl = pc({pc(0x00, 0x1F), pc(0x7F)});
+
+        static inline auto pc_graph = pc(0x21, 0x7E);
+
+        static inline auto pc_print = pc(0x20, 0x7E);
+
+        static inline auto pc_punct = pc(ct::string("[]!\"#$%&'()*+,./:;<=>?@\\^_`{|}~-"));
+
+        static inline auto pc_xdigit = pc(
+                {
+                        pc(ct::character('A'), ct::character('F')),
+                        pc(ct::character('a'), ct::character('f')),
+                        pc(ct::character('0'), ct::character('9'))
+                }
+        );
+
         static inline auto pba(const std::shared_ptr<pt> &first, const std::shared_ptr<pt> &second) {
             return std::make_shared<pbat>(first, second);
         }
 
-        static inline auto pba_zo(const std::shared_ptr<pt> &target) { return pba(target, po()); }
+        static inline auto pba(const std::shared_ptr<pt> &target) { return pba(target, po); }
 
         static inline auto pbc(const std::shared_ptr<pt> &first, const std::shared_ptr<pt> &second) {
             return std::make_shared<pbct>(first, second);
@@ -98,17 +130,23 @@ namespace regular {
             return std::make_shared<plct>(std::move(list));
         }
 
-        static inline auto plcs(const typename ct::String &s) {
+        static auto plc(const typename ct::String &s) {
             typename plt::List list;
             for (auto &&c:s) list.emplace_back(pc(c));
             return std::make_shared<plct>(std::move(list));
+        }
+
+        static auto plc(const std::shared_ptr<pt> &item, const std::size_t &nt) {
+            typename plt::List list;
+            for (std::size_t i = 0; i < nt; i++) list.emplace_back(item);
+            return plc(std::move(list));
         }
 
         static inline auto pk(const std::shared_ptr<pt> &value) {
             return std::make_shared<pkt>(value);
         }
 
-        static inline auto pbc_om(const std::shared_ptr<pt> &target) {
+        static inline auto pbc(const std::shared_ptr<pt> &target) {
             return pbc(target, pk(target));
         }
 

@@ -14,9 +14,9 @@ namespace regular {
 
         using String=std::string;
 
-        static inline String string(const std::string &s) {
-            return s;
-        }
+        static inline std::string string(const std::string &s) { return s; }
+
+        static inline char character(const char &c) { return c; }
     };
 
     template<>
@@ -25,8 +25,12 @@ namespace regular {
 
         using String=std::wstring;
 
-        static inline String string(const std::string &s) {
+        static inline std::wstring string(const std::string &s) {
             return std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>().from_bytes(s);
+        }
+
+        static inline wchar_t character(const char &c) {
+            return string(std::string(1, c)).at(0);
         }
     };
 }
