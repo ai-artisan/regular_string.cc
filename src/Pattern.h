@@ -86,21 +86,18 @@ namespace regular {
 
                 Matched match(const StringIterator &head, const StringIterator &tail) const final {
                     bool index;
-                    auto matched = this->first->match(head, tail);
-                    auto greedy_end = matched.second->greedy_end;
-                    if (matched.first) index = false;
+                    auto m = this->first->match(head, tail);
+                    auto greedy_end = m.second->greedy_end;
+                    if (m.first) index = false;
                     else {
-                        matched = this->second->match(head, tail);
+                        m = this->second->match(head, tail);
                         index = true;
-                        if (matched.second->greedy_end > greedy_end) greedy_end = matched.second->greedy_end;
+                        if (m.second->greedy_end > greedy_end) greedy_end = m.second->greedy_end;
                     }
-                    return {
-                            matched.first,
-                            std::make_shared<record::Some<Character>>(
-                                    head, matched.second->direct_end, greedy_end,
-                                    index, matched.second
-                            )
-                    };
+                    return {m.first, std::make_shared<record::Some<Character>>(
+                            head, m.second->direct_end, greedy_end,
+                            index, m.second
+                    )};
                 }
             };
 
@@ -113,23 +110,20 @@ namespace regular {
                 Concatenation(const PtrPattern &first, const PtrPattern &second) : Binary<Character>(first, second) {}
 
                 Matched match(const StringIterator &head, const StringIterator &tail) const final {
-                    auto matched = this->first->match(head, tail);
-                    auto success = matched.first;
-                    decltype(matched.second) first_record = matched.second, second_record;
+                    auto m = this->first->match(head, tail);
+                    auto success = m.first;
+                    decltype(m.second) first_record = m.second, second_record;
                     auto greedy_end = first_record->greedy_end;
                     if (success) {
-                        matched = this->second->match(matched.second->direct_end, tail);
-                        success = success && matched.first;
-                        second_record = matched.second;
+                        m = this->second->match(m.second->direct_end, tail);
+                        success = success && m.first;
+                        second_record = m.second;
                         if (second_record->greedy_end > greedy_end) greedy_end = second_record->greedy_end;
                     } else second_record = nullptr;
-                    return {
-                            success,
-                            std::make_shared<record::Every<Character>>(
-                                    head, matched.second->direct_end, greedy_end,
-                                    first_record, second_record
-                            )
-                    };
+                    return {success, std::make_shared<record::Every<Character>>(
+                            head, m.second->direct_end, greedy_end,
+                            first_record, second_record
+                    )};
                 }
             };
         }
@@ -176,24 +170,21 @@ namespace regular {
                     std::shared_ptr<Record<Character>> value = nullptr;
 
                     for (auto &&item:this->list) {
-                        auto matched = item.value->match(head, tail);
-                        if (matched.second->greedy_end > greedy_end) greedy_end = matched.second->greedy_end;
-                        if (matched.first) {
+                        auto m = item.value->match(head, tail);
+                        if (m.second->greedy_end > greedy_end) greedy_end = m.second->greedy_end;
+                        if (m.first) {
                             success = true;
-                            direct_end = matched.second->direct_end;
+                            direct_end = m.second->direct_end;
                             key = item.key;
-                            value = matched.second;
+                            value = m.second;
                             break;
                         }
                         index++;
                     }
-                    return {
-                            success,
-                            std::make_shared<record::LinearSome<Character>>(
-                                    head, direct_end, greedy_end,
-                                    index, std::move(key), value
-                            )
-                    };
+                    return {success, std::make_shared<record::LinearSome<Character>>(
+                            head, direct_end, greedy_end,
+                            index, std::move(key), value
+                    )};
                 }
             };
 
@@ -214,22 +205,19 @@ namespace regular {
 
                     std::size_t i = 0;
                     for (auto &&item:this->list) {
-                        auto matched = item.value->match(direct_end, tail);
-                        direct_end = matched.second->direct_end;
-                        if (matched.second->greedy_end > greedy_end) greedy_end = matched.second->greedy_end;
-                        map[item.key] = vector[i++] = matched.second;
-                        if (!matched.first) {
+                        auto m = item.value->match(direct_end, tail);
+                        direct_end = m.second->direct_end;
+                        if (m.second->greedy_end > greedy_end) greedy_end = m.second->greedy_end;
+                        map[item.key] = vector[i++] = m.second;
+                        if (!m.first) {
                             success = false;
                             break;
                         }
                     }
-                    return {
-                            success,
-                            std::make_shared<record::LinearEvery<Character>>(
-                                    head, direct_end, greedy_end,
-                                    std::move(vector), std::move(map)
-                            )
-                    };
+                    return {success, std::make_shared<record::LinearEvery<Character>>(
+                            head, direct_end, greedy_end,
+                            std::move(vector), std::move(map)
+                    )};
                 }
             };
         }
@@ -257,20 +245,17 @@ namespace regular {
                     auto direct_end = head, greedy_end = head;
                     typename record::Greedy<Character>::List list;
                     while (true) {
-                        auto matched = this->value->match(direct_end, tail);
-                        if (matched.second->greedy_end > greedy_end) greedy_end = matched.second->greedy_end;
-                        if (matched.first && (matched.second->direct_end > direct_end)) {
-                            list.emplace_back(matched.second);
-                            direct_end = matched.second->direct_end;
+                        auto m = this->value->match(direct_end, tail);
+                        if (m.second->greedy_end > greedy_end) greedy_end = m.second->greedy_end;
+                        if (m.first && (m.second->direct_end > direct_end)) {
+                            list.emplace_back(m.second);
+                            direct_end = m.second->direct_end;
                         } else break;
                     }
-                    return {
-                            true,
-                            std::make_shared<record::Greedy<Character>>(
-                                    head, direct_end, greedy_end,
-                                    std::move(list)
-                            )
-                    };
+                    return {true, std::make_shared<record::Greedy<Character>>(
+                            head, direct_end, greedy_end,
+                            std::move(list)
+                    )};
                 }
             };
 
@@ -283,8 +268,8 @@ namespace regular {
                 explicit Collapse(const PtrPattern &value) : Unary<Character>(value) {}
 
                 Matched match(const StringIterator &head, const StringIterator &tail) const final {
-                    auto &&[first, record] = this->value->match(head, tail);
-                    return {first, std::make_shared<Record<Character>>(
+                    auto &&[success, record] = this->value->match(head, tail);
+                    return {success, std::make_shared<Record<Character>>(
                             record->begin, record->direct_end, record->greedy_end
                     )};
                 }
@@ -301,6 +286,37 @@ namespace regular {
 
             Matched match(const StringIterator &head, const StringIterator &tail) const final {
                 return this->value ? this->value->match(head, tail) : Matched{false, nullptr};
+            }
+        };
+
+        template<typename Character>
+        struct Filter : Pattern<Character> {
+            using PtrPattern = typename Pattern<Character>::PtrPattern;
+            using StringIterator = typename Pattern<Character>::StringIterator;
+            using Matched = typename Pattern<Character>::Matched;
+
+            const bool sign;
+            const PtrPattern first, second;
+
+            Filter(const bool &sign, const PtrPattern &first, const PtrPattern &second) :
+                    sign(sign), first(first), second(second) {}
+
+            Matched match(const StringIterator &head, const StringIterator &tail) const final {
+                auto m0 = this->first->match(head, tail);
+                if (m0.first) {
+                    auto m1 = this->second->match(head, m0.second->direct_end);
+                    return {
+                            !((m1.first && m1.second->direct_end == m0.second->direct_end) ^ this->sign),
+                            std::make_shared<record::Every<Character>>(
+                                    head, m0.second->direct_end, std::max(m0.second->greedy_end, m1.second->greedy_end),
+                                    m0.second, m1.second
+                            )
+                    };
+                } else
+                    return {false, std::make_shared<record::Every<Character>>(
+                            head, m0.second->direct_end, m0.second->greedy_end,
+                            m0.second, nullptr
+                    )};
             }
         };
     }

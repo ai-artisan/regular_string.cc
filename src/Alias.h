@@ -113,5 +113,9 @@ namespace regular {
         }
 
         static inline auto pp() { return std::make_shared<ppt>(); }
+
+        static inline auto pf(const std::shared_ptr<pt> &first, const bool &sign, const std::shared_ptr<pt> &second) {
+            return std::make_shared<pft>(sign, first, second);
+        }
     };
 }
