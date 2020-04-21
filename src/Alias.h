@@ -136,10 +136,8 @@ namespace regular {
             return std::make_shared<plct>(std::move(list));
         }
 
-        static auto plc(const std::shared_ptr<pt> &item, const std::size_t &nt) {
-            typename plt::List list;
-            for (std::size_t i = 0; i < nt; i++) list.emplace_back(item);
-            return plc(std::move(list));
+        static inline auto plc(const std::shared_ptr<pt> &item, const std::size_t &nt) {
+            return plc(typename plt::List(nt, item));
         }
 
         static inline auto pk(const std::shared_ptr<pt> &value) {
