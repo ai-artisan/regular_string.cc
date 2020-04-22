@@ -93,3 +93,8 @@ namespace regular {
     template<typename>
     struct Alias;
 }
+
+#include "CharacterTraits.h"
+#include "Record.h"
+#include "Pattern.h"
+#include "Alias.h"
