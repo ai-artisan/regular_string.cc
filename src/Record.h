@@ -13,6 +13,8 @@ namespace regular {
         Record(const StringIterator &begin, const StringIterator &direct_end, const StringIterator &greedy_end) :
                 begin(begin), direct_end(direct_end), greedy_end(greedy_end) {}
 
+        virtual ~Record() = default;
+
         template<typename Derived>
         std::shared_ptr<Derived> as() const {
             return std::dynamic_pointer_cast<Derived>(const_cast<Record<Character> *>(this)->shared_from_this());
@@ -58,7 +60,7 @@ namespace regular {
             const PtrRecord first, second;
 
             Every(const StringIterator &begin, const StringIterator &direct_end, const StringIterator &greedy_end,
-                   const PtrRecord &first, const PtrRecord &second) :
+                  const PtrRecord &first, const PtrRecord &second) :
                     Record<Character>(begin, direct_end, greedy_end),
                     first(first), second(second) {}
         };
