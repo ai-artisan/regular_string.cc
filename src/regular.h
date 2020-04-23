@@ -34,6 +34,9 @@ namespace regular {
 
         template<typename>
         struct Greedy;
+
+        template<typename>
+        struct Mark;
     }
 
     template<typename>
@@ -60,6 +63,9 @@ namespace regular {
 
             template<typename>
             struct Concatenation;
+
+            template<typename>
+            struct Filter;
         }
 
         template<typename>
@@ -82,13 +88,13 @@ namespace regular {
 
             template<typename>
             struct Collapse;
+
+            template<typename>
+            struct Mark;
         }
 
         template<typename>
         struct Placeholder;
-
-        template<typename>
-        struct Filter;
     }
 
     template<typename>

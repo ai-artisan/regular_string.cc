@@ -126,26 +126,43 @@ namespace regular {
                     )};
                 }
             };
+
+            template<typename Character>
+            struct Filter : Binary<Character> {
+                using PtrPattern = typename Pattern<Character>::PtrPattern;
+                using StringIterator = typename Pattern<Character>::StringIterator;
+                using Matched = typename Pattern<Character>::Matched;
+
+                const bool sign;
+
+                Filter(const PtrPattern &first, const PtrPattern &second, const bool &sign) :
+                        Binary<Character>(first, second), second(second) {}
+
+                Matched match(const StringIterator &head, const StringIterator &tail) const final {
+                    auto m0 = this->first->match(head, tail);
+                    if (m0.first) {
+                        auto m1 = this->second->match(head, m0.second->direct_end);
+                        return {
+                                !((m1.first && m1.second->direct_end == m0.second->direct_end) ^ this->sign),
+                                std::make_shared<record::Every<Character>>(
+                                        head, m0.second->direct_end, std::max(m0.second->greedy_end, m1.second->greedy_end),
+                                        m0.second, m1.second
+                                )
+                        };
+                    } else
+                        return {false, std::make_shared<record::Every<Character>>(
+                                head, m0.second->direct_end, m0.second->greedy_end,
+                                m0.second, nullptr
+                        )};
+                }
+            };
         }
 
         template<typename Character>
         struct Linear : Pattern<Character> {
             using PtrPattern = typename Pattern<Character>::PtrPattern;
 
-            struct Item {
-                using Key = typename record::LinearSome<Character>::Key;
-
-                const Key key;
-                const PtrPattern value;
-
-                template<typename Value>
-                /*explicit*/ Item(const Value &value) : key(), value(value) {}
-
-                template<typename Value>
-                Item(Key key, const Value &value) : key(std::move(key)), value(value) {}
-            };
-
-            using List = std::list<Item>;
+            using List = std::list<PtrPattern>;
 
             const List list;
 
@@ -166,16 +183,14 @@ namespace regular {
                     bool success = false;
                     auto direct_end = head, greedy_end = head;
                     std::size_t index = -1;
-                    typename record::LinearSome<Character>::Key key = CharacterTraits<Character>::string("");
                     std::shared_ptr<Record<Character>> value = nullptr;
 
                     for (auto &&item:this->list) {
-                        auto m = item.value->match(head, tail);
+                        auto m = item->match(head, tail);
                         if (m.second->greedy_end > greedy_end) greedy_end = m.second->greedy_end;
                         if (m.first) {
                             success = true;
                             direct_end = m.second->direct_end;
-                            key = item.key;
                             value = m.second;
                             break;
                         }
@@ -183,7 +198,7 @@ namespace regular {
                     }
                     return {success, std::make_shared<record::LinearSome<Character>>(
                             head, direct_end, greedy_end,
-                            index, std::move(key), value
+                            index, value
                     )};
                 }
             };
@@ -201,14 +216,13 @@ namespace regular {
                     bool success = true;
                     auto direct_end = head, greedy_end = head;
                     typename record::LinearEvery<Character>::Vector vector(this->list.size());
-                    typename record::LinearEvery<Character>::Map map;
 
                     std::size_t i = 0;
                     for (auto &&item:this->list) {
-                        auto m = item.value->match(direct_end, tail);
+                        auto m = item->match(direct_end, tail);
                         direct_end = m.second->direct_end;
                         if (m.second->greedy_end > greedy_end) greedy_end = m.second->greedy_end;
-                        map[item.key] = vector[i++] = m.second;
+                        vector[i++] = m.second;
                         if (!m.first) {
                             success = false;
                             break;
@@ -216,7 +230,7 @@ namespace regular {
                     }
                     return {success, std::make_shared<record::LinearEvery<Character>>(
                             head, direct_end, greedy_end,
-                            std::move(vector), std::move(map)
+                            std::move(vector)
                     )};
                 }
             };
@@ -274,6 +288,19 @@ namespace regular {
                     )};
                 }
             };
+
+            template<typename Character>
+            struct Mark : Unary<Character> {
+                using PtrPattern = typename Pattern<Character>::PtrPattern;
+                using String = typename Pattern<Character>::String;
+                using StringIterator = typename Pattern<Character>::StringIterator;
+                using Matched = typename Pattern<Character>::Matched;
+
+                const String tag;
+
+                Mark(const PtrPattern &value, String tag) : Unary<Character>(value),
+                                                            tag(std::move(tag)) {}
+            };
         }
 
         template<typename Character>
@@ -286,37 +313,6 @@ namespace regular {
 
             Matched match(const StringIterator &head, const StringIterator &tail) const final {
                 return this->value ? this->value->match(head, tail) : Matched{false, nullptr};
-            }
-        };
-
-        template<typename Character>
-        struct Filter : Pattern<Character> {
-            using PtrPattern = typename Pattern<Character>::PtrPattern;
-            using StringIterator = typename Pattern<Character>::StringIterator;
-            using Matched = typename Pattern<Character>::Matched;
-
-            const bool sign;
-            const PtrPattern first, second;
-
-            Filter(const bool &sign, const PtrPattern &first, const PtrPattern &second) :
-                    sign(sign), first(first), second(second) {}
-
-            Matched match(const StringIterator &head, const StringIterator &tail) const final {
-                auto m0 = this->first->match(head, tail);
-                if (m0.first) {
-                    auto m1 = this->second->match(head, m0.second->direct_end);
-                    return {
-                            !((m1.first && m1.second->direct_end == m0.second->direct_end) ^ this->sign),
-                            std::make_shared<record::Every<Character>>(
-                                    head, m0.second->direct_end, std::max(m0.second->greedy_end, m1.second->greedy_end),
-                                    m0.second, m1.second
-                            )
-                    };
-                } else
-                    return {false, std::make_shared<record::Every<Character>>(
-                            head, m0.second->direct_end, m0.second->greedy_end,
-                            m0.second, nullptr
-                    )};
             }
         };
     }
