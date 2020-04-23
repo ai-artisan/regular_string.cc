@@ -282,7 +282,7 @@ namespace regular {
                 explicit Collapse(const PtrPattern &value) : Unary<Character>(value) {}
 
                 Matched match(const StringIterator &head, const StringIterator &tail) const final {
-                    auto &&[success, record] = this->value->match(head, tail);
+                    auto[success, record] = this->value->match(head, tail);
                     return {success, std::make_shared<Record<Character>>(
                             record->begin, record->direct_end, record->greedy_end
                     )};
@@ -300,6 +300,14 @@ namespace regular {
 
                 Mark(const PtrPattern &value, String tag) : Unary<Character>(value),
                                                             tag(std::move(tag)) {}
+
+                Matched match(const StringIterator &head, const StringIterator &tail) const final {
+                    auto[success, record] = this->value->match(head, tail);
+                    return {success, std::make_shared<record::Mark<Character>>(
+                            record->begin, record->direct_end, record->greedy_end,
+                            tag, record
+                    )};
+                }
             };
         }
 

@@ -106,5 +106,31 @@ namespace regular {
                     Record<Character>(begin, direct_end, greedy_end),
                     tag(std::move(tag)), value(value) {}
         };
+
+        namespace mark {
+            template<typename Character>
+            struct List : Mark<Character> {
+                using PtrRecord = typename Record<Character>::PtrRecord;
+                using String = typename Record<Character>::String;
+                using StringIterator = typename Record<Character>::StringIterator;
+
+                List(const StringIterator &begin, const StringIterator &direct_end, const StringIterator &greedy_end,
+                     String tag, const PtrRecord &value) :
+                        Mark<Character>(begin, direct_end, greedy_end,
+                                        std::move(tag), value) {}
+            };
+
+            template<typename Character>
+            struct Dict : Mark<Character> {
+                using PtrRecord = typename Record<Character>::PtrRecord;
+                using String = typename Record<Character>::String;
+                using StringIterator = typename Record<Character>::StringIterator;
+
+                Dict(const StringIterator &begin, const StringIterator &direct_end, const StringIterator &greedy_end,
+                     String tag, const PtrRecord &value) :
+                        Mark<Character>(begin, direct_end, greedy_end,
+                                        std::move(tag), value) {}
+            };
+        }
     }
 }
