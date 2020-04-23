@@ -136,7 +136,7 @@ namespace regular {
                 const bool sign;
 
                 Filter(const PtrPattern &first, const PtrPattern &second, const bool &sign) :
-                        Binary<Character>(first, second), second(second) {}
+                        Binary<Character>(first, second), sign(sign) {}
 
                 Matched match(const StringIterator &head, const StringIterator &tail) const final {
                     auto m0 = this->first->match(head, tail);
