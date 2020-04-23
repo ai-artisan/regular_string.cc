@@ -38,7 +38,7 @@ namespace regular {
         PairExtracted some() const {
             auto list = extract();
             if (list.size() == 1) return list.front();
-            else return std::make_pair("", nullptr);
+            else return std::make_pair(CharacterTraits<Character>::string(""), nullptr);
         }
 
         DictExtracted every() const {
