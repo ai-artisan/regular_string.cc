@@ -13,7 +13,7 @@ namespace regular {
 
         template<typename Derived>
         std::shared_ptr<Derived> as() const {
-            return std::dynamic_pointer_cast<Derived>(const_cast<Pattern<Character> *>(this)->shared_from_this());
+            return std::dynamic_pointer_cast<Derived>(const_cast<Pattern *>(this)->shared_from_this());
         }
     };
 
@@ -283,9 +283,7 @@ namespace regular {
 
                 Matched match(const StringIterator &head, const StringIterator &tail) const final {
                     auto[success, record] = this->value->match(head, tail);
-                    return {success, std::make_shared<Record<Character>>(
-                            record->begin, record->direct_end, record->greedy_end
-                    )};
+                    return {success, Record<Character>::collapse(record)};
                 }
             };
 
@@ -298,8 +296,7 @@ namespace regular {
 
                 const String tag;
 
-                Mark(const PtrPattern &value, String tag) : Unary<Character>(value),
-                                                            tag(std::move(tag)) {}
+                Mark(const PtrPattern &value, String tag) : Unary<Character>(value), tag(std::move(tag)) {}
 
                 Matched match(const StringIterator &head, const StringIterator &tail) const final {
                     auto[success, record] = this->value->match(head, tail);
@@ -309,6 +306,44 @@ namespace regular {
                     )};
                 }
             };
+
+            namespace mark {
+                template<typename Character>
+                struct List : Mark<Character> {
+                    using PtrPattern = typename Pattern<Character>::PtrPattern;
+                    using String = typename Pattern<Character>::String;
+                    using StringIterator = typename Pattern<Character>::StringIterator;
+                    using Matched = typename Pattern<Character>::Matched;
+
+                    List(const PtrPattern &value, String tag) : Mark<Character>(value, std::move(tag)) {}
+
+                    Matched match(const StringIterator &head, const StringIterator &tail) const final {
+                        auto[success, record] = this->value->match(head, tail);
+                        return {success, std::make_shared<record::mark::List<Character>>(
+                                record->begin, record->direct_end, record->greedy_end,
+                                tag, record
+                        )};
+                    }
+                };
+
+                template<typename Character>
+                struct Dict : Mark<Character> {
+                    using PtrPattern = typename Pattern<Character>::PtrPattern;
+                    using String = typename Pattern<Character>::String;
+                    using StringIterator = typename Pattern<Character>::StringIterator;
+                    using Matched = typename Pattern<Character>::Matched;
+
+                    Dict(const PtrPattern &value, String tag) : Mark<Character>(value, std::move(tag)) {}
+
+                    Matched match(const StringIterator &head, const StringIterator &tail) const final {
+                        auto[success, record] = this->value->match(head, tail);
+                        return {success, std::make_shared<record::mark::Dict<Character>>(
+                                record->begin, record->direct_end, record->greedy_end,
+                                tag, record
+                        )};
+                    }
+                };
+            }
         }
 
         template<typename Character>

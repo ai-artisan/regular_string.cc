@@ -9,6 +9,10 @@ namespace regular {
         using String = typename CharacterTraits<Character>::String;
         using StringIterator = typename String::const_iterator;
 
+        static inline auto collapse(const PtrRecord &record) {
+            return std::make_shared<Record<Character>>(record->begin, record->direct_end, record->greedy_end);
+        }
+
         const StringIterator begin, direct_end, greedy_end;
 
         Record(const StringIterator &begin, const StringIterator &direct_end, const StringIterator &greedy_end) :
@@ -18,7 +22,7 @@ namespace regular {
 
         template<typename Derived>
         std::shared_ptr<Derived> as() const {
-            return std::dynamic_pointer_cast<Derived>(const_cast<Record<Character> *>(this)->shared_from_this());
+            return std::dynamic_pointer_cast<Derived>(const_cast<Record *>(this)->shared_from_this());
         }
     };
 

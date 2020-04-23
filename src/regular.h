@@ -110,6 +110,14 @@ namespace regular {
 
             template<typename>
             struct Mark;
+
+            namespace mark {
+                template<typename>
+                struct List;
+
+                template<typename>
+                struct Dict;
+            }
         }
 
         template<typename>
@@ -121,6 +129,7 @@ namespace regular {
 }
 
 #include "CharacterTraits.h"
+#include "Data.h"
 #include "Record.h"
 #include "Pattern.h"
 #include "Alias.h"

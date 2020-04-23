@@ -5,7 +5,7 @@
 int main() {
     using ra = regular::Alias<char>;
 
-    auto p = ra::pk(ra::plc({ra::pc_digit, ra::pc_alpha}));
+    auto p = ra::pq(ra::pk(ra::pc_alnum));
     std::string s;
     s.clear();
     while (std::cin >> s) {
