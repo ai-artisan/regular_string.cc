@@ -290,7 +290,7 @@ namespace regular {
             template<typename Character>
             struct Mark : Unary<Character> {
                 using PtrPattern = typename Pattern<Character>::PtrPattern;
-                using String = typename Pattern<Character>::String;
+                using String = typename CharacterTraits<Character>::String;
                 using StringIterator = typename Pattern<Character>::StringIterator;
                 using Matched = typename Pattern<Character>::Matched;
 

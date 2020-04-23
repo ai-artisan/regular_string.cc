@@ -9,12 +9,19 @@ namespace regular {
 
         using ct = CharacterTraits<Character>;
 
+        using dt = Data<Character>;
+        using dlt = data::List<Character>;
+        using ddt = data::Dict<Character>;
+
         using rt = Record<Character>;
         using rbst = record::Some<Character>;
         using rlst = record::LinearSome<Character>;
         using rbet = record::Every<Character>;
         using rlet = record::LinearEvery<Character>;
         using rgt = record::Greedy<Character>;
+        using rmt = record::Mark<Character>;
+        using rmlt = record::mark::List<Character>;
+        using rmdt = record::mark::Dict<Character>;
 
         using pt = Pattern<Character>;
         using pot = pattern::EmptyString<Character>;
@@ -32,6 +39,9 @@ namespace regular {
         using pqt = pattern::unary::Collapse<Character>;
         using ppt = pattern::Placeholder<Character>;
         using pft = pattern::binary::Filter<Character>;
+        using pmt = pattern::unary::Mark<Character>;
+        using pmlt = pattern::unary::mark::List<Character>;
+        using pmdt = pattern::unary::mark::Dict<Character>;
 
         static inline auto po = std::make_shared<pot>();
 
@@ -156,6 +166,18 @@ namespace regular {
 
         static inline auto pf(const std::shared_ptr<pt> &first, const bool &sign, const std::shared_ptr<pt> &second) {
             return std::make_shared<pft>(first, second, sign);
+        }
+
+        static inline auto pm(typename ct::String tag, const std::shared_ptr<pt> &value) {
+            return std::make_shared<pmt>(value, std::move(tag));
+        }
+
+        static inline auto pml(typename ct::String tag, const std::shared_ptr<pt> &value) {
+            return std::make_shared<pmlt>(value, std::move(tag));
+        }
+
+        static inline auto pmd(typename ct::String tag, const std::shared_ptr<pt> &value) {
+            return std::make_shared<pmdt>(value, std::move(tag));
         }
     };
 }
