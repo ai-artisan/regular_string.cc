@@ -306,44 +306,6 @@ namespace regular {
                     )};
                 }
             };
-
-            namespace mark {
-                template<typename Character>
-                struct List : Mark<Character> {
-                    using PtrPattern = typename Pattern<Character>::PtrPattern;
-                    using String = typename Pattern<Character>::String;
-                    using StringIterator = typename Pattern<Character>::StringIterator;
-                    using Matched = typename Pattern<Character>::Matched;
-
-                    List(const PtrPattern &value, String tag) : Mark<Character>(value, std::move(tag)) {}
-
-                    Matched match(const StringIterator &head, const StringIterator &tail) const final {
-                        auto[success, record] = this->value->match(head, tail);
-                        return {success, std::make_shared<record::mark::List<Character>>(
-                                record->begin, record->direct_end, record->greedy_end,
-                                tag, record
-                        )};
-                    }
-                };
-
-                template<typename Character>
-                struct Dict : Mark<Character> {
-                    using PtrPattern = typename Pattern<Character>::PtrPattern;
-                    using String = typename Pattern<Character>::String;
-                    using StringIterator = typename Pattern<Character>::StringIterator;
-                    using Matched = typename Pattern<Character>::Matched;
-
-                    Dict(const PtrPattern &value, String tag) : Mark<Character>(value, std::move(tag)) {}
-
-                    Matched match(const StringIterator &head, const StringIterator &tail) const final {
-                        auto[success, record] = this->value->match(head, tail);
-                        return {success, std::make_shared<record::mark::Dict<Character>>(
-                                record->begin, record->direct_end, record->greedy_end,
-                                tag, record
-                        )};
-                    }
-                };
-            }
         }
 
         template<typename Character>

@@ -17,17 +17,6 @@ namespace regular {
     struct CharacterTraits;
 
     template<typename>
-    struct Data;
-
-    namespace data {
-        template<typename>
-        struct List;
-
-        template<typename>
-        struct Dict;
-    }
-
-    template<typename>
     struct Record;
 
     namespace record {
@@ -48,14 +37,6 @@ namespace regular {
 
         template<typename>
         struct Mark;
-
-        namespace mark {
-            template<typename>
-            struct List;
-
-            template<typename>
-            struct Dict;
-        }
     }
 
     template<typename>
@@ -110,14 +91,6 @@ namespace regular {
 
             template<typename>
             struct Mark;
-
-            namespace mark {
-                template<typename>
-                struct List;
-
-                template<typename>
-                struct Dict;
-            }
         }
 
         template<typename>
@@ -129,7 +102,6 @@ namespace regular {
 }
 
 #include "CharacterTraits.h"
-#include "Data.h"
 #include "Record.h"
 #include "Pattern.h"
 #include "Alias.h"
