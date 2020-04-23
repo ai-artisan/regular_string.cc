@@ -21,13 +21,10 @@ int main() {
 //                  << std::string(r->begin, r->direct_end) << '\n'
 //                  << std::string(r->begin, r->greedy_end) << '\n';
         if (b) {
-            auto l = r->extractList();
+            auto l = r->extract();
             std::cout << l.size() << '\n';
             for (auto &&[tag, item]:l) std::cout << tag << ' ' << string(item) << '\n';
-            auto m = r->extractDict();
-            std::cout << m.size() << '\n';
-            if (m.find("A") != m.cend()) std::cout << "A: " << string(m.at("A")) << '\n';
-            if (m.find("D") != m.cend()) std::cout << "D: " << string(m.at("D")) << '\n';
+            std::cout << r->every().at("A") << '\n';
         }
     }
 
