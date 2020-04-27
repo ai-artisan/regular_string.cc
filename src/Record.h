@@ -25,34 +25,26 @@ namespace regular {
             return std::dynamic_pointer_cast<Derived>(const_cast<Record *>(this)->shared_from_this());
         }
 
-        using PairExtracted = std::pair<String, PtrRecord>;
-        using ListExtracted = std::list<PairExtracted>;
-        using DictExtracted = std::unordered_map<String, PtrRecord>;
+        using ListExtracted = std::list<std::pair<String, PtrRecord>>;
+        using MapReduced = std::unordered_map<String, std::list<PtrRecord>>;
 
-        ListExtracted extract() const {
+        virtual inline void extract(ListExtracted &) const {}
+
+        static ListExtracted extract(const std::shared_ptr<Record> &record) {
             ListExtracted list;
-            this->extract(list);
+            record->extract(list);
             return list;
         }
 
-        PairExtracted some() const {
-            auto list = extract();
-            if (list.size() == 1) return list.front();
-            else return std::make_pair(CharacterTraits<Character>::string(""), nullptr);
-        }
-
-        DictExtracted every() const {
-            auto list = extract();
-            DictExtracted dict;
-            for (auto &&[tag, item]:list) {
-                auto &&i = dict.find(tag);
-                if (i == dict.cend()) dict.insert(std::make_pair(tag, item));
-                else i->second = nullptr;
+        static MapReduced reduce(const ListExtracted &list) {
+            MapReduced map;
+            for (auto &&[key, value]:list) {
+                auto i = map.find(key);
+                if (i == map.cend()) map.insert(std::make_pair(key, std::list<PtrRecord>{value}));
+                else i->second.emplace_back(value);
             }
-            return dict;
+            return map;
         }
-
-        virtual inline void extract(ListExtracted &) const {}
     };
 
     namespace record {
