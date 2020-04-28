@@ -37,16 +37,16 @@ namespace regular {
 
         static inline auto po = std::make_shared<pot>();
 
-        static inline auto pc(const typename pct::Describe &describe) { return std::make_shared<pct>(describe); }
+        static auto pc(const typename pct::Describe &describe) { return std::make_shared<pct>(describe); }
 
         template<typename Context>
-        static inline auto pc(Context context, const typename pcct<Context>::Depict &depict) {
+        static auto pc(Context context, const typename pcct<Context>::Depict &depict) {
             return std::make_shared<pcct<Context>>(std::move(context), depict);
         }
 
         static inline auto pca = pc([](const Character &) -> bool { return true; });
 
-        static inline auto pc(const Character &c0) {
+        static auto pc(const Character &c0) {
             return pc(c0, [](const Character &c0, const Character &c) -> bool { return c == c0; });
         }
 
@@ -114,21 +114,21 @@ namespace regular {
                 }
         );
 
-        static inline auto pba(const std::shared_ptr<pt> &first, const std::shared_ptr<pt> &second) {
+        static auto pba(const std::shared_ptr<pt> &first, const std::shared_ptr<pt> &second) {
             return std::make_shared<pbat>(first, second);
         }
 
-        static inline auto pba(const std::shared_ptr<pt> &target) { return pba(target, po); }
+        static auto pba(const std::shared_ptr<pt> &target) { return pba(target, po); }
 
-        static inline auto pbc(const std::shared_ptr<pt> &first, const std::shared_ptr<pt> &second) {
+        static auto pbc(const std::shared_ptr<pt> &first, const std::shared_ptr<pt> &second) {
             return std::make_shared<pbct>(first, second);
         }
 
-        static inline auto pla(typename plt::List list) {
+        static auto pla(typename plt::List list) {
             return std::make_shared<plat>(std::move(list));
         }
 
-        static inline auto plc(typename plt::List list) {
+        static auto plc(typename plt::List list) {
             return std::make_shared<plct>(std::move(list));
         }
 
@@ -138,29 +138,29 @@ namespace regular {
             return std::make_shared<plct>(std::move(list));
         }
 
-        static inline auto plc(const std::shared_ptr<pt> &item, const std::size_t &nt) {
+        static auto plc(const std::shared_ptr<pt> &item, const std::size_t &nt) {
             return plc(typename plt::List(nt, item));
         }
 
-        static inline auto pk(const std::shared_ptr<pt> &value) {
+        static auto pk(const std::shared_ptr<pt> &value) {
             return std::make_shared<pkt>(value);
         }
 
-        static inline auto pbc(const std::shared_ptr<pt> &target) {
+        static auto pbc(const std::shared_ptr<pt> &target) {
             return pbc(target, pk(target));
         }
 
-        static inline auto pq(const std::shared_ptr<pt> &value) {
+        static auto pq(const std::shared_ptr<pt> &value) {
             return std::make_shared<pqt>(value);
         }
 
-        static inline auto pp() { return std::make_shared<ppt>(); }
+        static auto pp() { return std::make_shared<ppt>(); }
 
-        static inline auto pf(const std::shared_ptr<pt> &first, const bool &sign, const std::shared_ptr<pt> &second) {
+        static auto pf(const std::shared_ptr<pt> &first, const bool &sign, const std::shared_ptr<pt> &second) {
             return std::make_shared<pft>(first, second, sign);
         }
 
-        static inline auto pm(typename ct::String tag, const std::shared_ptr<pt> &value) {
+        static auto pm(typename ct::String tag, const std::shared_ptr<pt> &value) {
             return std::make_shared<pmt>(value, std::move(tag));
         }
     };

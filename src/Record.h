@@ -9,7 +9,7 @@ namespace regular {
         using String = typename CharacterTraits<Character>::String;
         using StringIterator = typename String::const_iterator;
 
-        static inline auto collapse(const PtrRecord &record) {
+        static auto collapse(const PtrRecord &record) {
             return std::make_shared<Record<Character>>(record->begin, record->direct_end, record->greedy_end);
         }
 
@@ -28,7 +28,7 @@ namespace regular {
         using ListExtracted = std::list<std::pair<String, PtrRecord>>;
         using MapReduced = std::unordered_map<String, std::list<PtrRecord>>;
 
-        virtual inline void extract(ListExtracted &) const {}
+        virtual void extract(ListExtracted &) const {}
 
         static ListExtracted extract(const std::shared_ptr<Record> &record) {
             ListExtracted list;
@@ -63,7 +63,7 @@ namespace regular {
 
             using ListExtracted = typename Record<Character>::ListExtracted;
 
-            inline void extract(ListExtracted &list) const final { value->extract(list); }
+            void extract(ListExtracted &list) const final { value->extract(list); }
         };
 
         template<typename Character>
@@ -81,7 +81,7 @@ namespace regular {
 
             using ListExtracted = typename Record<Character>::ListExtracted;
 
-            inline void extract(ListExtracted &list) const final { value->extract(list); }
+            void extract(ListExtracted &list) const final { value->extract(list); }
         };
 
         template<typename Character>
@@ -119,7 +119,7 @@ namespace regular {
 
             using ListExtracted = typename Record<Character>::ListExtracted;
 
-            inline void extract(ListExtracted &list) const final { for (auto &&item:vector) item->extract(list); }
+            void extract(ListExtracted &list) const final { for (auto &&item:vector) item->extract(list); }
         };
 
         template<typename Character>
@@ -137,7 +137,7 @@ namespace regular {
 
             using ListExtracted = typename Record<Character>::ListExtracted;
 
-            inline void extract(ListExtracted &list_) const final { for (auto &&item:list) item->extract(list_); }
+            void extract(ListExtracted &list_) const final { for (auto &&item:list) item->extract(list_); }
         };
 
         template<typename Character>
@@ -156,7 +156,7 @@ namespace regular {
 
             using ListExtracted = typename Record<Character>::ListExtracted;
 
-            inline void extract(ListExtracted &list) const final { list.emplace_back(std::make_pair(tag, value)); }
+            void extract(ListExtracted &list) const final { list.emplace_back(std::make_pair(tag, value)); }
         };
     }
 }
