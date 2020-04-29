@@ -163,5 +163,9 @@ namespace regular {
         static auto pm(typename ct::String tag, const std::shared_ptr<pt> &value) {
             return std::make_shared<pmt>(value, std::move(tag));
         }
+
+        static auto pm(const std::shared_ptr<pt> &value) {
+            return pm(L"", value);
+        }
     };
 }
