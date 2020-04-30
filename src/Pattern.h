@@ -149,11 +149,7 @@ namespace regular {
                                         m0.second, m1.second
                                 )
                         };
-                    } else
-                        return {false, std::make_shared<record::Every<Character>>(
-                                head, m0.second->direct_end, m0.second->greedy_end,
-                                m0.second, nullptr
-                        )};
+                    } else return m0;
                 }
             };
         }

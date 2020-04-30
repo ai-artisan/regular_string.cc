@@ -63,7 +63,9 @@ namespace regular {
 
             using ListExtracted = typename Record<Character>::ListExtracted;
 
-            void extract(ListExtracted &list) const final { value->extract(list); }
+            void extract(ListExtracted &list) const final {
+                if (value) value->extract(list);
+            }
         };
 
         template<typename Character>
@@ -81,7 +83,9 @@ namespace regular {
 
             using ListExtracted = typename Record<Character>::ListExtracted;
 
-            void extract(ListExtracted &list) const final { value->extract(list); }
+            void extract(ListExtracted &list) const final {
+                if (value) value->extract(list);
+            }
         };
 
         template<typename Character>
@@ -99,8 +103,8 @@ namespace regular {
             using ListExtracted = typename Record<Character>::ListExtracted;
 
             void extract(ListExtracted &list) const final {
-                first->extract(list);
-                second->extract(list);
+                if (first) first->extract(list);
+                if (second) second->extract(list);
             }
         };
 
@@ -119,7 +123,9 @@ namespace regular {
 
             using ListExtracted = typename Record<Character>::ListExtracted;
 
-            void extract(ListExtracted &list) const final { for (auto &&item:vector) item->extract(list); }
+            void extract(ListExtracted &list) const final {
+                for (auto &&item:vector) if (item) item->extract(list);
+            }
         };
 
         template<typename Character>
@@ -137,7 +143,9 @@ namespace regular {
 
             using ListExtracted = typename Record<Character>::ListExtracted;
 
-            void extract(ListExtracted &list_) const final { for (auto &&item:list) item->extract(list_); }
+            void extract(ListExtracted &list_) const final {
+                for (auto &&item:list) if (item) item->extract(list_);
+            }
         };
 
         template<typename Character>
@@ -156,7 +164,9 @@ namespace regular {
 
             using ListExtracted = typename Record<Character>::ListExtracted;
 
-            void extract(ListExtracted &list) const final { list.emplace_back(std::make_pair(tag, value)); }
+            void extract(ListExtracted &list) const final {
+                list.emplace_back(std::make_pair(tag, value));
+            }
         };
     }
 }

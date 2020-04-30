@@ -165,7 +165,7 @@ namespace regular {
         }
 
         static auto pm(const std::shared_ptr<pt> &value) {
-            return pm(L"", value);
+            return pm(ct::string(""), value);
         }
     };
 }
