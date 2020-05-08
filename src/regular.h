@@ -15,14 +15,6 @@
 #include "Record.h"
 
 namespace regular {
-    template<typename ...Types>
-    std::list<Types...> operator+(const std::list<Types...> &a, const std::list<Types...> &b) {
-        std::list<Types...> c;
-        for (auto &&i:a) c.emplace_back(i);
-        for (auto &&i:b) c.emplace_back(i);
-        return c;
-    }
-
     template<typename...>
     struct CharacterTraits;
 
