@@ -10,12 +10,6 @@ namespace regular {
         using ct = CharacterTraits<Character>;
 
         using rt = Record<Character>;
-        using rbst = record::Some<Character>;
-        using rlst = record::LinearSome<Character>;
-        using rbet = record::Every<Character>;
-        using rlet = record::LinearEvery<Character>;
-        using rgt = record::Greedy<Character>;
-        using rmt = record::Mark<Character>;
 
         using pt = Pattern<Character>;
         using pot = pattern::EmptyString<Character>;
@@ -25,16 +19,14 @@ namespace regular {
         using pbt = pattern::Binary<Character>;
         using pbat = pattern::binary::Alternation<Character>;
         using pbct = pattern::binary::Concatenation<Character>;
-        using plt = pattern::Linear<Character>;
-        using plat = pattern::linear::Alternation<Character>;
-        using plct = pattern::linear::Concatenation<Character>;
-        using put = pattern::Unary<Character>;
-        using pkt = pattern::unary::KleeneStar<Character>;
-        using pqt = pattern::unary::Collapse<Character>;
-        using ppt = pattern::Placeholder<Character>;
-        using pft = pattern::binary::Filter<Character>;
-        using pmt = pattern::unary::Mark<Character>;
-
+//        using plt = pattern::Linear<Character>;
+//        using plat = pattern::linear::Alternation<Character>;
+//        using plct = pattern::linear::Concatenation<Character>;
+//        using put = pattern::Unary<Character>;
+//        using pkt = pattern::unary::KleeneStar<Character>;
+//        using ppt = pattern::Placeholder<Character>;
+//        using pmt = pattern::unary::Mark<Character>;
+//
         static inline auto po = std::make_shared<pot>();
 
         static auto pc(const typename pct::Describe &describe) { return std::make_shared<pct>(describe); }
@@ -123,49 +115,41 @@ namespace regular {
         static auto pbc(const std::shared_ptr<pt> &first, const std::shared_ptr<pt> &second) {
             return std::make_shared<pbct>(first, second);
         }
-
-        static auto pla(typename plt::List list) {
-            return std::make_shared<plat>(std::move(list));
-        }
-
-        static auto plc(typename plt::List list) {
-            return std::make_shared<plct>(std::move(list));
-        }
-
-        static auto plc(const typename ct::String &s) {
-            typename plt::List list;
-            for (auto &&c:s) list.emplace_back(pc(c));
-            return std::make_shared<plct>(std::move(list));
-        }
-
-        static auto plc(const std::shared_ptr<pt> &item, const std::size_t &nt) {
-            return plc(typename plt::List(nt, item));
-        }
-
-        static auto pk(const std::shared_ptr<pt> &value) {
-            return std::make_shared<pkt>(value);
-        }
-
-        static auto pbc(const std::shared_ptr<pt> &target) {
-            return pbc(target, pk(target));
-        }
-
-        static auto pq(const std::shared_ptr<pt> &value) {
-            return std::make_shared<pqt>(value);
-        }
-
-        static auto pp() { return std::make_shared<ppt>(); }
-
-        static auto pf(const std::shared_ptr<pt> &first, const bool &sign, const std::shared_ptr<pt> &second) {
-            return std::make_shared<pft>(first, second, sign);
-        }
-
-        static auto pm(typename ct::String tag, const std::shared_ptr<pt> &value) {
-            return std::make_shared<pmt>(value, std::move(tag));
-        }
-
-        static auto pm(const std::shared_ptr<pt> &value) {
-            return pm(L"", value);
-        }
+//
+//        static auto pla(typename plt::List list) {
+//            return std::make_shared<plat>(std::move(list));
+//        }
+//
+//        static auto plc(typename plt::List list) {
+//            return std::make_shared<plct>(std::move(list));
+//        }
+//
+//        static auto plc(const typename ct::String &s) {
+//            typename plt::List list;
+//            for (auto &&c:s) list.emplace_back(pc(c));
+//            return std::make_shared<plct>(std::move(list));
+//        }
+//
+//        static auto plc(const std::shared_ptr<pt> &item, const std::size_t &nt) {
+//            return plc(typename plt::List(nt, item));
+//        }
+//
+//        static auto pk(const std::shared_ptr<pt> &value) {
+//            return std::make_shared<pkt>(value);
+//        }
+//
+//        static auto pbc(const std::shared_ptr<pt> &target) {
+//            return pbc(target, pk(target));
+//        }
+//
+//        static auto pp() { return std::make_shared<ppt>(); }
+//
+//        static auto pm(typename ct::String tag, const std::shared_ptr<pt> &value) {
+//            return std::make_shared<pmt>(value, std::move(tag));
+//        }
+//
+//        static auto pm(const std::shared_ptr<pt> &value) {
+//            return pm(L"", value);
+//        }
     };
 }

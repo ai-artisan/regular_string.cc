@@ -11,33 +11,23 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include "CharacterTraits.h"
+#include "Record.h"
 
 namespace regular {
+    template<typename ...Types>
+    std::list<Types...> operator+(const std::list<Types...> &a, const std::list<Types...> &b) {
+        std::list<Types...> c;
+        for (auto &&i:a) c.emplace_back(i);
+        for (auto &&i:b) c.emplace_back(i);
+        return c;
+    }
+
     template<typename...>
     struct CharacterTraits;
 
     template<typename>
     struct Record;
-
-    namespace record {
-        template<typename>
-        struct Some;
-
-        template<typename>
-        struct LinearSome;
-
-        template<typename>
-        struct Every;
-
-        template<typename>
-        struct LinearEvery;
-
-        template<typename>
-        struct Greedy;
-
-        template<typename>
-        struct Mark;
-    }
 
     template<typename>
     struct Pattern;
@@ -63,9 +53,6 @@ namespace regular {
 
             template<typename>
             struct Concatenation;
-
-            template<typename>
-            struct Filter;
         }
 
         template<typename>
@@ -85,9 +72,6 @@ namespace regular {
         namespace unary {
             template<typename>
             struct KleeneStar;
-
-            template<typename>
-            struct Collapse;
 
             template<typename>
             struct Mark;
