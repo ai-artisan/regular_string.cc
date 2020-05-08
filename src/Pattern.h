@@ -230,7 +230,7 @@ namespace regular {
                 PtrRecord match(const StringIterator &head, const StringIterator &tail) const final {
                     auto r = value->match(head, tail);
                     return std::make_shared<Record<Character>>(Record<Character>{
-                            r->success, r->begin, r->end, {r};
+                            r->success, r->begin, r->end, {{tag, r}}
                     });
                 }
             };
