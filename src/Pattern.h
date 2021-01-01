@@ -89,8 +89,8 @@ namespace regular {
                 using Pattern<Character>::match;
 
                 PtrRecord match(const StringIterator &head, const StringIterator &tail) const final {
-                    auto r = first->match(head, tail);
-                    if (!r->success) r = second->match(head, tail);
+                    auto r = this->first->match(head, tail);
+                    if (!r->success) r = this->second->match(head, tail);
                     return r;
                 }
             };
@@ -106,9 +106,9 @@ namespace regular {
                 using Pattern<Character>::match;
 
                 PtrRecord match(const StringIterator &head, const StringIterator &tail) const final {
-                    auto r = first->match(head, tail);
+                    auto r = this->first->match(head, tail);
                     if (r->success) {
-                        auto r1 = second->match(r->end, tail);
+                        auto r1 = this->second->match(r->end, tail);
                         r1->begin = r->begin;
                         r1->children.splice(r1->children.begin(), r->children);
                         return r1;
@@ -143,7 +143,7 @@ namespace regular {
                     auto r = std::make_shared<Record<Character>>();
                     r->success = false;
                     r->begin = r->end = head;
-                    for (auto &&item:list) {
+                    for (auto &&item:this->list) {
                         r = item->match(head, tail);
                         if (r->success) break;
                     }
@@ -165,7 +165,7 @@ namespace regular {
                     auto r = std::make_shared<Record<Character>>();
                     r->success = true;
                     r->begin = r->end = head;
-                    for (auto &&item:list) {
+                    for (auto &&item:this->list) {
                         auto r1 = item->match(r->end, tail);
                         r->end = r1->end;
                         r->children.splice(r->children.end(), r1->children);
@@ -204,7 +204,7 @@ namespace regular {
                     r->success = true;
                     r->begin = r->end = head;
                     while (true) {
-                        auto r1 = value->match(r->end, tail);
+                        auto r1 = this->value->match(r->end, tail);
                         if (r1->success && (r1->end > r->end)) {
                             r->end = r1->end;
                             r->children.splice(r->children.end(), r1->children);
@@ -228,7 +228,7 @@ namespace regular {
                 using Pattern<Character>::match;
 
                 PtrRecord match(const StringIterator &head, const StringIterator &tail) const final {
-                    auto r = value->match(head, tail);
+                    auto r = this->value->match(head, tail);
                     return std::make_shared<Record<Character>>(Record<Character>{
                             r->success, r->begin, r->end, {{tag, r}}
                     });
