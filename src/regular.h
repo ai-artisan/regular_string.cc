@@ -78,6 +78,12 @@ namespace regular {
 }
 
 #include "CharacterTraits.h"
+
+namespace regular {
+    template<typename Character>
+    std::list<typename CharacterTraits<Character>::String> split(const typename CharacterTraits<Character>::String &, const std::shared_ptr<Pattern<Character>> &);
+}
+
 #include "Record.h"
 #include "Pattern.h"
 #include "Alias.h"
